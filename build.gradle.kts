@@ -8,7 +8,6 @@ dependencies {
     api(libs.indra.common)
     api(libs.indra.publishing.sonatype)
     api(libs.errorprone.gradle)
-    api(libs.revapi.gradle)
     api(libs.spotless)
 }
 
