@@ -11,18 +11,16 @@ dependencies {
     api(libs.spotless)
 }
 
-java {
-    disableAutoTargetJvm()
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
-    }
-}
+java.disableAutoTargetJvm()
 
 tasks.withType<JavaCompile>().configureEach {
     options.release = 8
 }
 
 kotlin {
+    jvmToolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
     target {
         compilations.configureEach {
             kotlinOptions {
