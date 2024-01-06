@@ -1,7 +1,7 @@
 plugins {
     `kotlin-dsl`
     `maven-publish`
-    id("com.gradle.plugin-publish") version "1.2.1"
+    alias(libs.plugins.gradle.plugin.publish)
 }
 
 dependencies {
@@ -19,7 +19,7 @@ tasks.withType<JavaCompile>().configureEach {
 
 kotlin {
     jvmToolchain {
-        languageVersion = JavaLanguageVersion.of(17)
+        languageVersion = JavaLanguageVersion.of(8)
     }
     target {
         compilations.configureEach {
