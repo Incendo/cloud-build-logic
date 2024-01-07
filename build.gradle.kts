@@ -30,9 +30,17 @@ kotlin {
     }
 }
 
+gradlePlugin {
+    website = "https://github.com/Incendo"
+    vcsUrl = "https://github.com/Incendo/cloud-build-logic"
+}
+
 gradlePlugin.plugins.register("base") {
     id = "org.incendo.cloud-build-logic"
+    displayName = "Cloud Build Logic"
     implementationClass = "org.incendo.cloudbuildlogic.BasePlugin"
+    description = project.description
+    tags.addAll("Cloud", "Build-Logic")
 }
 
 plugin("errorprone", "org.incendo.cloudbuildlogic.ErrorpronePlugin")
@@ -45,7 +53,9 @@ fun plugin(name: String, implClass: String) {
     val prefixedId = "org.incendo.cloud-build-logic.$name"
     gradlePlugin.plugins.register(name) {
         id = prefixedId
+        displayName = "Cloud Build Logic ($name)"
         implementationClass = implClass
         description = project.description
+        tags.addAll("Cloud", "Build-Logic", name)
     }
 }
