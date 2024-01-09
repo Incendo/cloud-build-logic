@@ -24,7 +24,11 @@ nexusPublishing {
     }
 }
 
-java.disableAutoTargetJvm()
+java {
+    disableAutoTargetJvm()
+    withJavadocJar()
+    withSourcesJar()
+}
 
 tasks.withType<JavaCompile>().configureEach {
     options.release = 8
