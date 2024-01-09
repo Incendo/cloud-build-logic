@@ -18,6 +18,9 @@ signing {
     val signingKey: String? by project
     val signingPassword: String? by project
     useInMemoryPgpKeys(signingKey, signingPassword)
+    if (!project.version.toString().endsWith("-SNAPSHOT")) {
+        sign(publishing.publications)
+    }
 }
 
 nexusPublishing {
