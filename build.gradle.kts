@@ -1,7 +1,8 @@
 plugins {
     `kotlin-dsl`
     `maven-publish`
-    alias(libs.plugins.gradle.plugin.publish)
+    signing
+    alias(libs.plugins.nexus.publish)
 }
 
 dependencies {
@@ -9,6 +10,18 @@ dependencies {
     api(libs.indra.publishing.sonatype)
     api(libs.errorprone.gradle)
     api(libs.spotless)
+}
+
+signing {
+    val signingKey: String? by project
+    val signingPassword: String? by project
+    useInMemoryPgpKeys(signingKey, signingPassword)
+}
+
+nexusPublishing {
+    repositories {
+        sonatype()
+    }
 }
 
 java.disableAutoTargetJvm()
