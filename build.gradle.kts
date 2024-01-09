@@ -1,3 +1,5 @@
+import org.incendo.cloudbuildlogic.jmp
+
 plugins {
     `kotlin-dsl`
     `maven-publish`
@@ -21,6 +23,30 @@ signing {
 nexusPublishing {
     repositories {
         sonatype()
+    }
+}
+
+val ghUrl = "https://github.com/Incendo/cloud-build-logic"
+
+publishing.publications.withType(MavenPublication::class).configureEach {
+    pom {
+        name.convention("Cloud Build Logic")
+        description.convention(project.description)
+        url.convention(ghUrl)
+        licenses {
+            license {
+                name = "MIT License"
+                url = "https://www.opensource.org/licenses/mit-license.php"
+            }
+        }
+        developers {
+            jmp()
+        }
+        scm {
+            connection = "scm:git:git://github.com/Incendo/cloud-build-logic.git"
+            developerConnection = "scm:git:ssh://github.com:Incendo/cloud-build-logic.git"
+            url = "https://github.com/Incendo/cloud-build-logic/tree/master"
+        }
     }
 }
 
@@ -49,7 +75,7 @@ kotlin {
 
 gradlePlugin {
     website = "https://github.com/Incendo"
-    vcsUrl = "https://github.com/Incendo/cloud-build-logic"
+    vcsUrl = ghUrl
 }
 
 gradlePlugin.plugins.register("base") {
