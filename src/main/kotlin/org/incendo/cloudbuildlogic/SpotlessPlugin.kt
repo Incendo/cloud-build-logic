@@ -1,5 +1,6 @@
 package org.incendo.cloudbuildlogic
 
+import com.diffplug.gradle.spotless.BaseKotlinExtension
 import com.diffplug.gradle.spotless.FormatExtension
 import com.diffplug.gradle.spotless.SpotlessExtension
 import org.gradle.api.Action
@@ -34,7 +35,7 @@ class SpotlessPlugin : Plugin<Project> {
             }
             kotlinGradle {
                 target("*.gradle.kts", "src/*/kotlin/**.gradle.kts")
-                ktlint(ext.ktlintVersion.get())
+                ktlint(ext.ktlintVersion.get()).overrides()
                 applyCommon()
             }
             format("configs") {
@@ -48,15 +49,7 @@ class SpotlessPlugin : Plugin<Project> {
             target.spotless {
                 kotlin {
                     targetExclude("src/*/kotlin/**.gradle.kts", "build/generated-sources/**")
-                    ktlint(ext.ktlintVersion.get())
-                        .editorConfigOverride(
-                            mapOf(
-                                "ktlint_standard_filename" to "disabled",
-                                "ktlint_standard_trailing-comma-on-call-site" to "disabled",
-                                "ktlint_standard_trailing-comma-on-declaration-site" to "disabled",
-                            )
-                        )
-
+                    ktlint(ext.ktlintVersion.get()).overrides()
                     applyCommon()
                 }
             }
@@ -81,5 +74,15 @@ class SpotlessPlugin : Plugin<Project> {
                 }
             }
         }
+    }
+
+    private fun BaseKotlinExtension.KtlintConfig.overrides() {
+        editorConfigOverride(
+            mapOf(
+                "ktlint_standard_filename" to "disabled",
+                "ktlint_standard_trailing-comma-on-call-site" to "disabled",
+                "ktlint_standard_trailing-comma-on-declaration-site" to "disabled",
+            )
+        )
     }
 }
