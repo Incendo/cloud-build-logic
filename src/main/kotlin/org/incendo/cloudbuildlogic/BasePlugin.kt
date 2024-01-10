@@ -1,9 +1,11 @@
 package org.incendo.cloudbuildlogic
 
+import com.palantir.baseline.plugins.BaselineImmutables
 import net.kyori.indra.IndraExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.withType
 
@@ -11,6 +13,7 @@ class BasePlugin : Plugin<Project> {
     override fun apply(target: Project) {
         target.plugins.apply("net.kyori.indra")
         target.plugins.apply("net.kyori.indra.checkstyle")
+        target.plugins.apply(BaselineImmutables::class)
 
         target.extensions.configure(IndraExtension::class) {
             javaVersions {

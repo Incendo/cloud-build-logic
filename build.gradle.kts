@@ -12,6 +12,7 @@ dependencies {
     api(libs.indra.publishing.sonatype)
     api(libs.errorprone.gradle)
     api(libs.spotless)
+    implementation(libs.palantir.baseline)
 }
 
 signing {
