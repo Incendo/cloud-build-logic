@@ -11,4 +11,4 @@ indra-common = { module = "net.kyori:indra-common", version.ref = "indra" }
 indra-publishing-sonatype = { module = "net.kyori:indra-publishing-sonatype", version.ref = "indra" }
 errorprone-gradle = { module = "net.ltgt.gradle:gradle-errorprone-plugin", version.ref = "gradleErrorprone" }
 spotless = { module = "com.diffplug.spotless:spotless-plugin-gradle", version.ref = "spotless" }
-palantir-baseline = { module = "com.palantir.baseline:gradle-baseline-java", version = "5.35.0" }
+palantir-baseline = { module = "com.palantir.baseline:gradle-baseline-java", version = "5.36.0" }
