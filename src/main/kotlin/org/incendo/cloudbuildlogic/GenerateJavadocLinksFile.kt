@@ -27,6 +27,9 @@ abstract class GenerateJavadocLinksFile : DefaultTask() {
     @get:Input
     abstract val overrides: MapProperty<String, String>
 
+    @get:Input
+    abstract val skip: SetProperty<String>
+
     @get:OutputFile
     abstract val linksFile: RegularFileProperty
 
@@ -56,12 +59,12 @@ abstract class GenerateJavadocLinksFile : DefaultTask() {
         val output = StringBuilder()
         for (resolvedArtifactResult in apiElements.sorted()) {
             val id = resolvedArtifactResult.componentIdentifier() ?: continue
-            if (!filter.get().test(id)) {
+            val coordinates = coordinates(id)
+            if (!filter.get().test(id) || skip.get().any { coordinates.startsWith(it) }) {
                 continue
             }
 
             output.append("-link ")
-            val coordinates = coordinates(id)
             var overridden = false
             for ((c, o) in overrides.get()) {
                 if (coordinates.startsWith(c)) {

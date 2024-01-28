@@ -29,6 +29,7 @@ abstract class JavadocLinksPlugin : Plugin<Project> {
                 val linksFileTask = target.tasks.register<GenerateJavadocLinksFile>(name + "JavadocLinksFile") {
                     linksFile.convention(target.layout.buildDirectory.file(name))
                     overrides.convention(ext.overrides)
+                    skip.convention(ext.skip)
                     defaultJavadocProvider.convention("https://javadoc.io/doc/{group}/{name}/{version}")
                     filter.convention(ext.filter)
                     apiElements(apiElementsCopy)
