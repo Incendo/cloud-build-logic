@@ -14,6 +14,7 @@ import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
@@ -39,6 +40,9 @@ abstract class GenerateJavadocLinksFile : DefaultTask() {
     @get:Input
     abstract val defaultJavadocProvider: Property<String>
 
+    @get:Nested
+    abstract val filter: Property<JavadocLinksExtension.DependencyFilter>
+
     fun apiElements(configuration: NamedDomainObjectProvider<Configuration>) {
         apiElements.set(configuration.map { it.incoming.artifacts })
         apiElementsFiles.setFrom(configuration)
@@ -52,6 +56,9 @@ abstract class GenerateJavadocLinksFile : DefaultTask() {
         val output = StringBuilder()
         for (resolvedArtifactResult in apiElements.sorted()) {
             val id = resolvedArtifactResult.componentIdentifier() ?: continue
+            if (!filter.get().test(id)) {
+                continue
+            }
 
             output.append("-link ")
             val coordinates = coordinates(id)

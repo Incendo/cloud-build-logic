@@ -30,6 +30,7 @@ abstract class JavadocLinksPlugin : Plugin<Project> {
                     linksFile.convention(target.layout.buildDirectory.file(name))
                     overrides.convention(ext.overrides)
                     defaultJavadocProvider.convention("https://javadoc.io/doc/{group}/{name}/{version}")
+                    filter.convention(ext.filter)
                     apiElements(apiElementsCopy)
                 }
 
