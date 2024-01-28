@@ -2,6 +2,7 @@ package org.incendo.cloudbuildlogic
 
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
@@ -42,7 +43,7 @@ abstract class JavadocLinksExtension {
     fun interface DependencyFilter : Predicate<ModuleComponentIdentifier> {
         class NoSnapshots : DependencyFilter {
             override fun test(t: ModuleComponentIdentifier): Boolean {
-                return !t.version.endsWith("-SNAPSHOT")
+                return t !is MavenUniqueSnapshotComponentIdentifier
             }
         }
     }
