@@ -3,6 +3,7 @@ package org.incendo.cloudbuildlogic
 import org.gradle.api.Action
 import org.gradle.api.PolymorphicDomainObjectContainer
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
@@ -38,6 +39,9 @@ fun coordinates(componentId: ModuleComponentIdentifier): String {
         .append(ver)
         .toString()
 }
+
+fun ResolvedArtifactResult.moduleComponentId(): ModuleComponentIdentifier? =
+    id.componentIdentifier as? ModuleComponentIdentifier
 
 fun SourceSet.formatName(taskName: String): String {
     if (name == "main") {
