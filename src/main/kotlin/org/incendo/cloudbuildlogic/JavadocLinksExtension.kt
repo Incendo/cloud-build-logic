@@ -7,11 +7,12 @@ import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.Input
 import java.util.function.Predicate
 
 abstract class JavadocLinksExtension {
     abstract val overrides: MapProperty<String, String>
-    abstract val skip: ListProperty<String>
+    abstract val excludes: ListProperty<String>
     abstract val filter: Property<DependencyFilter>
 
     init {
@@ -31,7 +32,7 @@ abstract class JavadocLinksExtension {
     }
 
     fun exclude(dep: ModuleDependency) {
-        skip.add(key(dep))
+        excludes.add(key(dep))
     }
 
     fun exclude(dep: Provider<out ModuleDependency>) {
@@ -41,9 +42,22 @@ abstract class JavadocLinksExtension {
     private fun key(dep: ModuleDependency) = dep.group + ':' + dep.name + (dep.version?.let { ":$it" } ?: "")
 
     fun interface DependencyFilter : Predicate<ModuleComponentIdentifier> {
-        class NoSnapshots : DependencyFilter {
+        data class NoSnapshots(
+            @get:Input
+            val exceptFor: Set<String> = emptySet()
+        ) : DependencyFilter {
             override fun test(t: ModuleComponentIdentifier): Boolean {
+                val coords = coordinates(t)
+                if (exceptFor.any { coords.startsWith(it) }) {
+                    return true
+                }
                 return t !is MavenUniqueSnapshotComponentIdentifier
+            }
+        }
+
+        class PassThrough : DependencyFilter {
+            override fun test(ignore: ModuleComponentIdentifier): Boolean {
+                return true
             }
         }
     }

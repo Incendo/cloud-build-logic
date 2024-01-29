@@ -46,7 +46,7 @@ abstract class GenerateJavadocLinksFile : DefaultTask() {
     @get:Nested
     abstract val filter: Property<JavadocLinksExtension.DependencyFilter>
 
-    fun apiElements(configuration: NamedDomainObjectProvider<Configuration>) {
+    fun dependenciesFrom(configuration: NamedDomainObjectProvider<Configuration>) {
         apiElements.set(configuration.map { it.incoming.artifacts })
         apiElementsFiles.setFrom(configuration)
     }
@@ -89,16 +89,6 @@ abstract class GenerateJavadocLinksFile : DefaultTask() {
 
     private fun ResolvedArtifactResult.componentIdentifier(): ModuleComponentIdentifier? =
         id.componentIdentifier as? ModuleComponentIdentifier
-
-    private fun coordinates(componentId: ModuleComponentIdentifier): String {
-        return StringBuilder()
-            .append(componentId.group)
-            .append(':')
-            .append(componentId.module)
-            .append(':')
-            .append(componentId.version)
-            .toString()
-    }
 
     private fun Provider<Set<ResolvedArtifactResult>>.sorted(): List<ResolvedArtifactResult> = get().sortedWith(
         Comparator.comparing<ResolvedArtifactResult, String> { it.id.componentIdentifier.displayName }

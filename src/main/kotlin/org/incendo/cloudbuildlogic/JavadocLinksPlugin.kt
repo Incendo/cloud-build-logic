@@ -19,20 +19,19 @@ abstract class JavadocLinksPlugin : Plugin<Project> {
                     return@configureEach
                 }
 
-                val apiElementsCopy = target.configurations.register(apiElementsConfigurationName + "JavadocLinksCopy") {
+                val linkDependencies = target.configurations.register(formatName("javadocLinks")) {
                     extendsFrom(target.configurations.named(apiElementsConfigurationName).get())
                     isCanBeResolved = true
                     isCanBeConsumed = false
-                    isCanBeDeclared = false
                 }
 
-                val linksFileTask = target.tasks.register<GenerateJavadocLinksFile>(name + "JavadocLinksFile") {
-                    linksFile.convention(target.layout.buildDirectory.file(name))
+                val linksFileTask = target.tasks.register<GenerateJavadocLinksFile>(formatName("javadocLinksFile")) {
+                    linksFile.convention(target.layout.buildDirectory.file("tmp/$name.options"))
                     overrides.convention(ext.overrides)
-                    skip.convention(ext.skip)
+                    skip.convention(ext.excludes)
                     defaultJavadocProvider.convention("https://javadoc.io/doc/{group}/{name}/{version}")
                     filter.convention(ext.filter)
-                    apiElements(apiElementsCopy)
+                    dependenciesFrom(linkDependencies)
                 }
 
                 target.tasks.maybeConfigure<Javadoc>(javadocTaskName) {
