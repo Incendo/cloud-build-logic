@@ -3,12 +3,7 @@ package org.incendo.cloudbuildlogic
 import org.gradle.api.DefaultTask
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
-import org.gradle.api.attributes.Bundling
-import org.gradle.api.attributes.Category
-import org.gradle.api.attributes.DocsType
-import org.gradle.api.attributes.Usage
 import org.gradle.api.file.ArchiveOperations
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
@@ -27,7 +22,6 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
-import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.newInstance
 import org.incendo.cloudbuildlogic.JavadocLinksExtension.LinkOverride.Companion.replaceVariables
 import java.util.function.Function
@@ -75,29 +69,11 @@ abstract class GenerateJavadocLinksFile : DefaultTask() {
     @get:Nested
     val javadocArtifacts: Artifacts = objects.newInstance(Artifacts::class)
 
-    fun dependenciesFrom(configuration: NamedDomainObjectProvider<Configuration>) {
+    fun dependenciesFrom(
+        configuration: NamedDomainObjectProvider<Configuration>,
+        javadocView: NamedDomainObjectProvider<Configuration>
+    ) {
         artifacts.setFrom(configuration)
-
-        val javadocView = project.configurations.register(configuration.name + "Javadoc") {
-            isCanBeResolved = true
-            isCanBeConsumed = false
-
-            attributes {
-                attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
-                attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
-                attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.JAVADOC))
-                attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-            }
-
-            // Gradle doesn't consider transitives when we simply extend the configuration using the above attributes
-            defaultDependencies {
-                for (artifact in configuration.get().incoming.artifacts.artifacts) {
-                    val id = artifact.componentIdentifier() ?: continue
-                    add(project.dependencies.create(coordinates(id)))
-                }
-            }
-        }
-
         javadocArtifacts.setFrom(javadocView)
     }
 
@@ -113,7 +89,7 @@ abstract class GenerateJavadocLinksFile : DefaultTask() {
 
         val output = StringBuilder()
         for (resolvedArtifactResult in artifacts.artifacts.sorted()) {
-            val id = resolvedArtifactResult.componentIdentifier() ?: continue
+            val id = resolvedArtifactResult.moduleComponentId() ?: continue
             val coordinates = coordinates(id)
             if (!filter.get().test(id) || skip.get().any { coordinates.startsWith(it) }) {
                 continue
@@ -133,7 +109,7 @@ abstract class GenerateJavadocLinksFile : DefaultTask() {
             }
 
             val javadocArtifact = javadocArtifacts.artifacts.get()
-                .find { it.componentIdentifier() != null && it.componentIdentifier() == id }
+                .find { it.moduleComponentId() != null && it.moduleComponentId() == id }
 
             if (javadocArtifact == null) {
                 output.append("-link ").append(link)
@@ -155,9 +131,6 @@ abstract class GenerateJavadocLinksFile : DefaultTask() {
         }
         file.writeText(output.toString())
     }
-
-    private fun ResolvedArtifactResult.componentIdentifier(): ModuleComponentIdentifier? =
-        id.componentIdentifier as? ModuleComponentIdentifier
 
     private fun Provider<Set<ResolvedArtifactResult>>.sorted(): List<ResolvedArtifactResult> = get().sortedWith(
         Comparator.comparing<ResolvedArtifactResult, String> { it.id.componentIdentifier.displayName }

@@ -2,11 +2,16 @@ package org.incendo.cloudbuildlogic
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.attributes.Bundling
+import org.gradle.api.attributes.Category
+import org.gradle.api.attributes.DocsType
+import org.gradle.api.attributes.Usage
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.external.javadoc.StandardJavadocDocletOptions
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.getByType
+import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
 
 abstract class JavadocLinksPlugin : Plugin<Project> {
@@ -25,6 +30,26 @@ abstract class JavadocLinksPlugin : Plugin<Project> {
                     isCanBeConsumed = false
                 }
 
+                val javadocView = target.configurations.register(linkDependencies.name + "Javadoc") {
+                    isCanBeResolved = true
+                    isCanBeConsumed = false
+
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, target.objects.named(Category.DOCUMENTATION))
+                        attribute(Bundling.BUNDLING_ATTRIBUTE, target.objects.named(Bundling.EXTERNAL))
+                        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, target.objects.named(DocsType.JAVADOC))
+                        attribute(Usage.USAGE_ATTRIBUTE, target.objects.named(Usage.JAVA_RUNTIME))
+                    }
+
+                    // Gradle doesn't consider transitives when we simply extend the configuration using the above attributes
+                    defaultDependencies {
+                        for (artifact in linkDependencies.get().incoming.artifacts.artifacts) {
+                            val id = artifact.moduleComponentId() ?: continue
+                            add(target.dependencies.create(coordinates(id)))
+                        }
+                    }
+                }
+
                 val linksFileTask = target.tasks.register<GenerateJavadocLinksFile>(formatName("javadocLinksFile")) {
                     linksFile.convention(target.layout.buildDirectory.file("tmp/$name/links.options"))
                     unpackedJavadocs.convention(target.layout.buildDirectory.dir("tmp/$name/unpackedJavadocs"))
@@ -32,7 +57,7 @@ abstract class JavadocLinksPlugin : Plugin<Project> {
                     skip.convention(ext.excludes)
                     defaultJavadocProvider.convention("https://javadoc.io/doc/{group}/{name}/{version}")
                     filter.convention(ext.filter)
-                    dependenciesFrom(linkDependencies)
+                    dependenciesFrom(linkDependencies, javadocView)
                 }
 
                 val linksOutput = linksFileTask.flatMap { it.linksFile }
