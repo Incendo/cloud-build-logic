@@ -12,9 +12,10 @@ class CrossdocConventions : Plugin<Project> {
         target.plugins.withId("java-library") {
             target.plugins.apply(CrossdocPlugin::class)
 
+            // after any groupId changes
             target.afterEvaluate {
                 target.extensions.getByType(CrossdocExtension::class).apply {
-                    baseUrl("https://javadoc.io/${target.group}/")
+                    baseUrl().convention("https://javadoc.io/${target.group}/")
                 }
             }
         }
