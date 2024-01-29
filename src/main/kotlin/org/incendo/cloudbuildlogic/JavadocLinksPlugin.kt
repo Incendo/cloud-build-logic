@@ -8,15 +8,26 @@ import org.gradle.api.attributes.DocsType
 import org.gradle.api.attributes.Usage
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.javadoc.Javadoc
+import org.gradle.build.event.BuildEventsListenerRegistry
 import org.gradle.external.javadoc.StandardJavadocDocletOptions
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
+import org.gradle.kotlin.dsl.registerIfAbsent
+import javax.inject.Inject
 
 abstract class JavadocLinksPlugin : Plugin<Project> {
+    @get:Inject
+    abstract val buildEventsListenerRegistry: BuildEventsListenerRegistry
+
     override fun apply(target: Project) {
         val ext = target.extensions.create("javadocLinks", JavadocLinksExtension::class)
+        val service = target.gradle.sharedServices.registerIfAbsent(
+            JavadocHostAvailabilityService::class.java.simpleName,
+            JavadocHostAvailabilityService::class
+        ) {}
+        buildEventsListenerRegistry.onTaskCompletion(service)
 
         target.plugins.withId("java-library") {
             target.extensions.getByType(SourceSetContainer::class).configureEach {
@@ -57,6 +68,12 @@ abstract class JavadocLinksPlugin : Plugin<Project> {
                     skip.convention(ext.excludes)
                     defaultJavadocProvider.convention("https://javadoc.io/doc/{group}/{name}/{version}")
                     filter.convention(ext.filter)
+                    javadocHostAvailabilityService.set(service)
+                    checkJavadocHostAvailability.convention(
+                        target.providers.gradleProperty("cloud-build-logic.checkJavadocHostAvailability")
+                            .map { it.toBoolean() }
+                            .orElse(true)
+                    )
                     dependenciesFrom(linkDependencies, javadocView)
                 }
 

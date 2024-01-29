@@ -1,6 +1,7 @@
 package org.incendo.cloudbuildlogic
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
@@ -14,6 +15,8 @@ import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
+import org.gradle.api.services.ServiceReference
+import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
@@ -21,6 +24,8 @@ import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.newInstance
 import org.incendo.cloudbuildlogic.JavadocLinksExtension.LinkOverride.Companion.replaceVariables
@@ -31,6 +36,7 @@ import kotlin.io.path.createDirectories
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.writeText
 
+@CacheableTask
 @Suppress("LeakingThis")
 abstract class GenerateJavadocLinksFile : DefaultTask() {
     @get:Nested
@@ -59,6 +65,12 @@ abstract class GenerateJavadocLinksFile : DefaultTask() {
 
     @get:Inject
     abstract val archiveOps: ArchiveOperations
+
+    @get:ServiceReference
+    abstract val javadocHostAvailabilityService: Property<JavadocHostAvailabilityService>
+
+    @get:Input
+    abstract val checkJavadocHostAvailability: Property<Boolean>
 
     // We use two separate configurations to allow for excluding dependencies from javadoc downloading without excluding them
     // from javadoc linking entirely.
@@ -111,6 +123,13 @@ abstract class GenerateJavadocLinksFile : DefaultTask() {
             val javadocArtifact = javadocArtifacts.artifacts.get()
                 .find { it.moduleComponentId() != null && it.moduleComponentId() == id }
 
+            if (checkJavadocHostAvailability.get()) {
+                val online = javadocHostAvailabilityService.get().isHostOnline(link)
+                if (!online) {
+                    throw GradleException("Javadoc host is offline or invalid: '$link' (see above for further details)")
+                }
+            }
+
             if (javadocArtifact == null) {
                 output.append("-link ").append(link)
             } else {
@@ -146,6 +165,7 @@ abstract class GenerateJavadocLinksFile : DefaultTask() {
          */
         @get:InputFiles
         @get:Optional
+        @get:PathSensitive(PathSensitivity.NONE)
         abstract val files: ConfigurableFileCollection
 
         fun setFrom(configuration: NamedDomainObjectProvider<Configuration>) {
