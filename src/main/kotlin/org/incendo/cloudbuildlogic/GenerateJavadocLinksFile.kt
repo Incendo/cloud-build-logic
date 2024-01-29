@@ -13,7 +13,6 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
-import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.services.ServiceReference
 import org.gradle.api.tasks.CacheableTask
@@ -29,7 +28,6 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.newInstance
 import org.incendo.cloudbuildlogic.JavadocLinksExtension.LinkOverride.Companion.replaceVariables
-import java.util.function.Function
 import javax.inject.Inject
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectories
@@ -67,7 +65,7 @@ abstract class GenerateJavadocLinksFile : DefaultTask() {
     abstract val archiveOps: ArchiveOperations
 
     @get:ServiceReference
-    abstract val javadocHostAvailabilityService: Property<JavadocHostAvailabilityService>
+    abstract val javadocAvailabilityService: Property<JavadocAvailabilityService>
 
     @get:Input
     abstract val checkJavadocHostAvailability: Property<Boolean>
@@ -99,8 +97,8 @@ abstract class GenerateJavadocLinksFile : DefaultTask() {
         unpackedDocs.toFile().deleteRecursively()
         unpackedDocs.createDirectories()
 
-        val output = StringBuilder()
-        for (resolvedArtifactResult in artifacts.artifacts.sorted()) {
+        val output = mutableListOf<String>()
+        for (resolvedArtifactResult in artifacts.artifacts.get().shuffled()) {
             val id = resolvedArtifactResult.moduleComponentId() ?: continue
             val coordinates = coordinates(id)
             if (!filter.get().test(id) || skip.get().any { coordinates.startsWith(it) }) {
@@ -124,14 +122,15 @@ abstract class GenerateJavadocLinksFile : DefaultTask() {
                 .find { it.moduleComponentId() != null && it.moduleComponentId() == id }
 
             if (checkJavadocHostAvailability.get()) {
-                val online = javadocHostAvailabilityService.get().isHostOnline(link)
+                val online = javadocAvailabilityService.get().areJavadocsAvailable(link)
                 if (!online) {
                     throw GradleException("Javadoc host is offline or invalid: '$link' (see above for further details)")
                 }
             }
 
+            val line = StringBuilder()
             if (javadocArtifact == null) {
-                output.append("-link ").append(link)
+                line.append("-link ").append(link)
             } else {
                 val unpackTo = unpackedDocs.resolve(coordinates(id).replace(":", "_"))
 
@@ -140,21 +139,16 @@ abstract class GenerateJavadocLinksFile : DefaultTask() {
                     into(unpackTo)
                 }
 
-                output.append("-linkoffline ")
+                line.append("-linkoffline ")
                     .append(link)
                     .append(' ')
                     .append(unpackTo.absolutePathString())
             }
 
-            output.append('\n')
+            output.add(line.toString())
         }
-        file.writeText(output.toString())
+        file.writeText(output.sorted().joinToString("\n"))
     }
-
-    private fun Provider<Set<ResolvedArtifactResult>>.sorted(): List<ResolvedArtifactResult> = get().sortedWith(
-        Comparator.comparing<ResolvedArtifactResult, String> { it.id.componentIdentifier.displayName }
-            .thenComparing(Function { it.file.name })
-    )
 
     abstract class Artifacts {
         @get:Internal

@@ -24,8 +24,8 @@ abstract class JavadocLinksPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         val ext = target.extensions.create("javadocLinks", JavadocLinksExtension::class)
         val service = target.gradle.sharedServices.registerIfAbsent(
-            JavadocHostAvailabilityService::class.java.simpleName,
-            JavadocHostAvailabilityService::class
+            JavadocAvailabilityService::class.java.simpleName,
+            JavadocAvailabilityService::class
         ) {}
         buildEventsListenerRegistry.onTaskCompletion(service)
 
@@ -68,7 +68,7 @@ abstract class JavadocLinksPlugin : Plugin<Project> {
                     skip.convention(ext.excludes)
                     defaultJavadocProvider.convention("https://javadoc.io/doc/{group}/{name}/{version}")
                     filter.convention(ext.filter)
-                    javadocHostAvailabilityService.set(service)
+                    javadocAvailabilityService.set(service)
                     checkJavadocHostAvailability.convention(
                         target.providers.gradleProperty("cloud-build-logic.checkJavadocHostAvailability")
                             .map { it.toBoolean() }
