@@ -26,8 +26,8 @@ abstract class JavadocLinksExtension {
 
     fun defaultOverrides(): Map<String, LinkOverride> {
         return mapOf(
-            "net.kyori:" to LinkOverride.KyoriRule(),
-            "io.papermc.paper:paper-api:" to LinkOverride.PaperApiRule(),
+            LinkOverride.KyoriRule.KEY to LinkOverride.KyoriRule(),
+            LinkOverride.PaperApiRule.KEY to LinkOverride.PaperApiRule(),
         )
     }
 
@@ -81,19 +81,27 @@ abstract class JavadocLinksExtension {
         }
 
         class PaperApiRule : LinkOverride {
-            override fun link(defaultProvider: String, it: ModuleComponentIdentifier): String {
-                val ver = it.version.split('.').take(2).joinToString(".")
+            companion object {
+                const val KEY = "io.papermc.paper:paper-api"
+            }
+
+            override fun link(defaultProvider: String, id: ModuleComponentIdentifier): String {
+                val ver = id.version.split('.').take(2).joinToString(".")
                 return "https://jd.papermc.io/paper/$ver/"
             }
         }
 
         class KyoriRule : LinkOverride {
-            override fun link(defaultProvider: String, it: ModuleComponentIdentifier): String {
-                val name = it.module.replace("adventure-", "")
+            companion object {
+                const val KEY = "net.kyori:"
+            }
+
+            override fun link(defaultProvider: String, id: ModuleComponentIdentifier): String {
+                val name = id.module.replace("adventure-", "")
                 if (name.contains("examination")) {
-                    return PassThrough().link(defaultProvider, it)
+                    return PassThrough().link(defaultProvider, id)
                 }
-                return "https://jd.advntr.dev/$name/${it.version}"
+                return "https://jd.advntr.dev/$name/${id.version}"
             }
         }
     }
