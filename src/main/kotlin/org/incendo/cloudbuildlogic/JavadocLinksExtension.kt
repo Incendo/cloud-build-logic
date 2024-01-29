@@ -28,6 +28,8 @@ abstract class JavadocLinksExtension {
         return mapOf(
             LinkOverride.KyoriRule.KEY to LinkOverride.KyoriRule(),
             LinkOverride.PaperApiRule.KEY to LinkOverride.PaperApiRule(),
+            LinkOverride.Log4jRule.API_KEY to LinkOverride.Log4jRule(),
+            LinkOverride.Log4jRule.CORE_KEY to LinkOverride.Log4jRule()
         )
     }
 
@@ -105,6 +107,17 @@ abstract class JavadocLinksExtension {
                     return PassThrough().link(defaultProvider, id)
                 }
                 return "https://jd.advntr.dev/$name/${id.version}"
+            }
+        }
+
+        class Log4jRule : LinkOverride {
+            companion object {
+                const val API_KEY = "org.apache.logging.log4j:log4j-api:"
+                const val CORE_KEY = "org.apache.logging.log4j:log4j-core:"
+            }
+
+            override fun link(defaultProvider: String, id: ModuleComponentIdentifier): String {
+                return "https://logging.apache.org/log4j/2.x/javadoc/${id.module}/"
             }
         }
     }
