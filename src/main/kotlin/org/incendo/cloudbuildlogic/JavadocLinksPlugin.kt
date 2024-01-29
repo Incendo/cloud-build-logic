@@ -13,7 +13,7 @@ abstract class JavadocLinksPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         val ext = target.extensions.create("javadocLinks", JavadocLinksExtension::class)
 
-        target.plugins.withId("java") {
+        target.plugins.withId("java-library") {
             target.extensions.getByType(SourceSetContainer::class).configureEach {
                 if (apiElementsConfigurationName !in target.configurations.names) {
                     return@configureEach

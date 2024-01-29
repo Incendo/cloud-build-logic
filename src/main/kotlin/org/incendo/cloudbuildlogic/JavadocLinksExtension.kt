@@ -21,6 +21,11 @@ abstract class JavadocLinksExtension {
 
     private fun init() {
         filter.convention(DependencyFilter.NoSnapshots())
+        overrides.putAll(defaultOverrides())
+    }
+
+    fun defaultOverrides(): Map<String, String> {
+        return mapOf()
     }
 
     fun override(dep: ModuleDependency, link: String) {
