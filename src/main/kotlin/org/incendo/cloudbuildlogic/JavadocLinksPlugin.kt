@@ -34,10 +34,14 @@ abstract class JavadocLinksPlugin : Plugin<Project> {
                     dependenciesFrom(linkDependencies)
                 }
 
+                val linksOutput = linksFileTask.flatMap { it.linksFile }
                 target.tasks.maybeConfigure<Javadoc>(javadocTaskName) {
-                    val opts = options as StandardJavadocDocletOptions
-                    dependsOn(linksFileTask)
-                    opts.linksFile(linksFileTask.get().linksFile.get().asFile)
+                    inputs.file(linksOutput)
+                        .withPropertyName("javadocLinksFile")
+                    doFirst {
+                        val opts = options as StandardJavadocDocletOptions
+                        opts.linksFile(linksOutput.get().asFile)
+                    }
                 }
             }
         }
