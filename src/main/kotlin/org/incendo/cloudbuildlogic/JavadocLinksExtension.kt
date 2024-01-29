@@ -74,7 +74,10 @@ abstract class JavadocLinksExtension {
             }
         }
 
-        data class Simple(val replacement: String) : LinkOverride {
+        data class Simple(
+            @get:Input
+            val replacement: String
+        ) : LinkOverride {
             override fun link(defaultProvider: String, id: ModuleComponentIdentifier): String {
                 return replacement.replaceVariables(id)
             }
