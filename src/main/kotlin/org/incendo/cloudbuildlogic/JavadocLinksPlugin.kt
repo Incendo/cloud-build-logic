@@ -26,7 +26,8 @@ abstract class JavadocLinksPlugin : Plugin<Project> {
                 }
 
                 val linksFileTask = target.tasks.register<GenerateJavadocLinksFile>(formatName("javadocLinksFile")) {
-                    linksFile.convention(target.layout.buildDirectory.file("tmp/$name.options"))
+                    linksFile.convention(target.layout.buildDirectory.file("tmp/$name/links.options"))
+                    unpackedJavadocs.convention(target.layout.buildDirectory.dir("tmp/$name/unpackedJavadocs"))
                     overrides.convention(ext.overrides)
                     skip.convention(ext.excludes)
                     defaultJavadocProvider.convention("https://javadoc.io/doc/{group}/{name}/{version}")
@@ -38,6 +39,8 @@ abstract class JavadocLinksPlugin : Plugin<Project> {
                 target.tasks.maybeConfigure<Javadoc>(javadocTaskName) {
                     inputs.file(linksOutput)
                         .withPropertyName("javadocLinksFile")
+                    inputs.dir(linksFileTask.flatMap { it.unpackedJavadocs })
+                        .withPropertyName("unpackedJavadocs")
                     doFirst {
                         val opts = options as StandardJavadocDocletOptions
                         opts.linksFile(linksOutput.get().asFile)
