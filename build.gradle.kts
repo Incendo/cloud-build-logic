@@ -10,6 +10,7 @@ plugins {
 dependencies {
     api(libs.indra.common)
     api(libs.indra.publishing.sonatype)
+    api(libs.indra.crossdoc)
     api(libs.errorprone.gradle)
     api(libs.spotless)
     implementation(libs.palantir.baseline)
