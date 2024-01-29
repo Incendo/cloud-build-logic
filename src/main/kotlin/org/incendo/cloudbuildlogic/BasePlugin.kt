@@ -14,7 +14,6 @@ class BasePlugin : Plugin<Project> {
         target.plugins.apply("net.kyori.indra")
         target.plugins.apply("net.kyori.indra.checkstyle")
         target.plugins.apply(BaselineImmutables::class)
-        target.plugins.apply(IncludeImmutablesSources::class)
 
         target.extensions.configure(IndraExtension::class) {
             javaVersions {

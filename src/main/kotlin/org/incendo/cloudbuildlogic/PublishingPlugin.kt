@@ -11,6 +11,7 @@ class PublishingPlugin : Plugin<Project> {
         target.plugins.apply("net.kyori.indra.publishing")
         target.plugins.apply(JavadocLinksPlugin::class)
         target.plugins.apply(CrossdocConventions::class)
+        target.plugins.apply(IncludeImmutablesSources::class)
 
         target.extensions.configure(IndraExtension::class) {
             signWithKeyFromProperties("signingKey", "signingPassword")
