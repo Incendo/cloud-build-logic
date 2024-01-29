@@ -55,7 +55,7 @@ abstract class JavadocLinksExtension {
         exclude(dep.get())
     }
 
-    private fun key(dep: ModuleDependency) = dep.group + ':' + dep.name + (dep.version?.let { ":$it" } ?: "")
+    private fun key(dep: ModuleDependency) = dep.group + ':' + dep.name + ':' + (dep.version ?: "")
 
     fun interface LinkOverride {
         fun link(defaultProvider: String, id: ModuleComponentIdentifier): String
