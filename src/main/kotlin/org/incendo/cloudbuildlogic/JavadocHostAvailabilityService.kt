@@ -19,7 +19,7 @@ abstract class JavadocHostAvailabilityService : BuildService<BuildServiceParamet
 
     fun isHostOnline(url: String): Boolean {
         return cache.computeIfAbsent(url) {
-            val hostString = url.let { if (it.endsWith('/')) it else "$it/" }
+            val hostString = url.let { if (it.endsWith('/')) it else "$it/" } + "package-list"
             val hostUrl = URL(hostString)
             val response = runCatching {
                 val connection = hostUrl.openConnection() as HttpURLConnection
