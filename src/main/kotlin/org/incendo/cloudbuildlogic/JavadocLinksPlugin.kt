@@ -1,11 +1,13 @@
 package org.incendo.cloudbuildlogic
 
+import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.attributes.Bundling
 import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.DocsType
 import org.gradle.api.attributes.Usage
+import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.build.event.BuildEventsListenerRegistry
@@ -30,11 +32,7 @@ abstract class JavadocLinksPlugin : Plugin<Project> {
         buildEventsListenerRegistry.onTaskCompletion(service)
 
         target.plugins.withId("java-library") {
-            target.extensions.getByType(SourceSetContainer::class).configureEach {
-                if (apiElementsConfigurationName !in target.configurations.names) {
-                    return@configureEach
-                }
-
+            target.forEachTargetedSourceSet {
                 val linkDependencies = target.configurations.register(formatName("javadocLinks")) {
                     extendsFrom(target.configurations.named(apiElementsConfigurationName).get())
                     isCanBeResolved = true
@@ -61,7 +59,7 @@ abstract class JavadocLinksPlugin : Plugin<Project> {
                     }
                 }
 
-                val linksFileTask = target.tasks.register<GenerateJavadocLinksFile>(formatName("javadocLinksFile")) {
+                target.tasks.register<GenerateJavadocLinksFile>(formatName("javadocLinksFile")) {
                     linksFile.convention(target.layout.buildDirectory.file("tmp/$name/links.options"))
                     unpackedJavadocs.convention(target.layout.buildDirectory.dir("tmp/$name/unpackedJavadocs"))
                     overrides.convention(ext.overrides)
@@ -76,19 +74,37 @@ abstract class JavadocLinksPlugin : Plugin<Project> {
                     )
                     dependenciesFrom(linkDependencies, javadocView)
                 }
+            }
+        }
 
-                val linksOutput = linksFileTask.flatMap { it.linksFile }
-                target.tasks.maybeConfigure<Javadoc>(javadocTaskName) {
-                    inputs.file(linksOutput)
-                        .withPropertyName("javadocLinksFile")
-                    inputs.dir(linksFileTask.flatMap { it.unpackedJavadocs })
-                        .withPropertyName("unpackedJavadocs")
-                    doFirst {
-                        val opts = options as StandardJavadocDocletOptions
-                        opts.linksFile(linksOutput.get().asFile)
+        target.afterEvaluate {
+            forEachTargetedSourceSet {
+                // Just disable for Kotlin projects. Supporting mixed language source sets is out of scope.
+                if (!plugins.hasPlugin("org.jetbrains.kotlin.jvm")) {
+                    val linksFileTask = tasks.named<GenerateJavadocLinksFile>(formatName("javadocLinksFile"))
+                    val linksOutput = linksFileTask.flatMap { it.linksFile }
+                    tasks.maybeConfigure<Javadoc>(javadocTaskName) {
+                        inputs.file(linksOutput)
+                            .withPropertyName("javadocLinksFile")
+                        inputs.dir(linksFileTask.flatMap { it.unpackedJavadocs })
+                            .withPropertyName("unpackedJavadocs")
+                        doFirst {
+                            val opts = options as StandardJavadocDocletOptions
+                            opts.linksFile(linksOutput.get().asFile)
+                        }
                     }
                 }
             }
+        }
+    }
+
+    private fun Project.forEachTargetedSourceSet(action: Action<SourceSet>) {
+        extensions.getByType(SourceSetContainer::class).configureEach {
+            if (apiElementsConfigurationName !in configurations.names) {
+                return@configureEach
+            }
+
+            action.execute(this)
         }
     }
 }
