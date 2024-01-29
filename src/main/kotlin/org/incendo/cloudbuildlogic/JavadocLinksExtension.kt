@@ -11,7 +11,7 @@ import org.gradle.api.tasks.Input
 import java.util.function.Predicate
 
 abstract class JavadocLinksExtension {
-    abstract val overrides: MapProperty<String, String>
+    abstract val overrides: MapProperty<String, LinkOverride>
     abstract val excludes: ListProperty<String>
     abstract val filter: Property<DependencyFilter>
 
@@ -24,15 +24,26 @@ abstract class JavadocLinksExtension {
         overrides.putAll(defaultOverrides())
     }
 
-    fun defaultOverrides(): Map<String, String> {
-        return mapOf()
+    fun defaultOverrides(): Map<String, LinkOverride> {
+        return mapOf(
+            "net.kyori:" to LinkOverride.KyoriRule(),
+            "io.papermc.paper:paper-api:" to LinkOverride.PaperApiRule(),
+        )
     }
 
     fun override(dep: ModuleDependency, link: String) {
-        overrides.put(key(dep), link)
+        overrides.put(key(dep), LinkOverride.Simple(link))
     }
 
     fun override(dep: Provider<out ModuleDependency>, link: String) {
+        override(dep.get(), link)
+    }
+
+    fun override(dep: ModuleDependency, link: LinkOverride) {
+        overrides.put(key(dep), link)
+    }
+
+    fun override(dep: Provider<out ModuleDependency>, link: LinkOverride) {
         override(dep.get(), link)
     }
 
@@ -45,6 +56,47 @@ abstract class JavadocLinksExtension {
     }
 
     private fun key(dep: ModuleDependency) = dep.group + ':' + dep.name + (dep.version?.let { ":$it" } ?: "")
+
+    fun interface LinkOverride {
+        fun link(defaultProvider: String, id: ModuleComponentIdentifier): String
+
+        companion object {
+            fun String.replaceVariables(id: ModuleComponentIdentifier): String {
+                return replace("{group}", id.group)
+                    .replace("{name}", id.module)
+                    .replace("{version}", id.version)
+            }
+        }
+
+        class PassThrough : LinkOverride {
+            override fun link(defaultProvider: String, id: ModuleComponentIdentifier): String {
+                return defaultProvider.replaceVariables(id)
+            }
+        }
+
+        data class Simple(val replacement: String) : LinkOverride {
+            override fun link(defaultProvider: String, id: ModuleComponentIdentifier): String {
+                return replacement.replaceVariables(id)
+            }
+        }
+
+        class PaperApiRule : LinkOverride {
+            override fun link(defaultProvider: String, it: ModuleComponentIdentifier): String {
+                val ver = it.version.split('.').take(2).joinToString(".")
+                return "https://jd.papermc.io/paper/$ver/"
+            }
+        }
+
+        class KyoriRule : LinkOverride {
+            override fun link(defaultProvider: String, it: ModuleComponentIdentifier): String {
+                val name = it.module.replace("adventure-", "")
+                if (name.contains("examination")) {
+                    return PassThrough().link(defaultProvider, it)
+                }
+                return "https://jd.advntr.dev/$name/${it.version}"
+            }
+        }
+    }
 
     fun interface DependencyFilter : Predicate<ModuleComponentIdentifier> {
         data class NoSnapshots(

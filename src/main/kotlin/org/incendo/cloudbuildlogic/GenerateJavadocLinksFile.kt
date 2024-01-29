@@ -18,14 +18,15 @@ import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+import org.incendo.cloudbuildlogic.JavadocLinksExtension.LinkOverride.Companion.replaceVariables
 import java.util.function.Function
 import kotlin.io.path.createDirectories
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.writeText
 
 abstract class GenerateJavadocLinksFile : DefaultTask() {
-    @get:Input
-    abstract val overrides: MapProperty<String, String>
+    @get:Nested
+    abstract val overrides: MapProperty<String, JavadocLinksExtension.LinkOverride>
 
     @get:Input
     abstract val skip: SetProperty<String>
@@ -69,7 +70,7 @@ abstract class GenerateJavadocLinksFile : DefaultTask() {
             for ((c, o) in overrides.get()) {
                 if (coordinates.startsWith(c)) {
                     overridden = true
-                    output.append(o.replaceVariables(id))
+                    output.append(o.link(defaultJavadocProvider.get(), id))
                     break
                 }
             }
@@ -79,12 +80,6 @@ abstract class GenerateJavadocLinksFile : DefaultTask() {
             output.append('\n')
         }
         file.writeText(output.toString())
-    }
-
-    private fun String.replaceVariables(id: ModuleComponentIdentifier): String {
-        return replace("{group}", id.group)
-            .replace("{name}", id.module)
-            .replace("{version}", id.version)
     }
 
     private fun ResolvedArtifactResult.componentIdentifier(): ModuleComponentIdentifier? =
