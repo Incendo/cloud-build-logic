@@ -4,16 +4,33 @@ import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier
 import org.gradle.api.provider.ListProperty
-import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Nested
+import org.incendo.cloudbuildlogic.JavadocLinksExtension.LinkOverride.Companion.replaceVariables
 import java.util.function.Predicate
 
 abstract class JavadocLinksExtension {
-    abstract val overrides: MapProperty<String, LinkOverride>
-    abstract val excludes: ListProperty<String>
+    /**
+     * Resolvers for custom Javadoc links.
+     */
+    abstract val overrides: ListProperty<OverrideRule>
+
+    /**
+     * Filters whether modules should be linked against.
+     */
     abstract val filter: Property<DependencyFilter>
+
+    /**
+     * Excludes in addition to [filter]. Behaves the same as [DependencyFilter.StartsWithAnyOf].
+     */
+    abstract val excludes: ListProperty<String>
+
+    /**
+     * The Javadoc provider to use when no [overrides] matched. Will be processed with [LinkOverride.replaceVariables].
+     */
+    abstract val defaultJavadocProvider: Property<String>
 
     init {
         init()
@@ -21,21 +38,20 @@ abstract class JavadocLinksExtension {
 
     private fun init() {
         filter.convention(DependencyFilter.NoSnapshots())
-        overrides.putAll(defaultOverrides())
+        overrides.addAll(defaultOverrides())
+        defaultJavadocProvider.convention("https://javadoc.io/doc/{group}/{name}/{version}")
     }
 
-    fun defaultOverrides(): Map<String, LinkOverride> {
-        return mapOf(
-            LinkOverride.KyoriRule.KEY to LinkOverride.KyoriRule(),
-            LinkOverride.PaperApiRule.KEY to LinkOverride.PaperApiRule(),
-            LinkOverride.PaperApiRule.LEGACY_KEY to LinkOverride.PaperApiRule(),
-            LinkOverride.Log4jRule.API_KEY to LinkOverride.Log4jRule(),
-            LinkOverride.Log4jRule.CORE_KEY to LinkOverride.Log4jRule(),
+    fun defaultOverrides(): List<OverrideRule> {
+        return listOf(
+            LinkOverride.KyoriRule.RULE,
+            LinkOverride.PaperApiRule.RULE,
+            LinkOverride.Log4jRule.RULE,
         )
     }
 
     fun override(dep: ModuleDependency, link: String) {
-        overrides.put(key(dep), LinkOverride.Simple(link))
+        override(dep, LinkOverride.Simple(link))
     }
 
     fun override(dep: Provider<out ModuleDependency>, link: String) {
@@ -43,11 +59,15 @@ abstract class JavadocLinksExtension {
     }
 
     fun override(dep: ModuleDependency, link: LinkOverride) {
-        overrides.put(key(dep), link)
+        override(DependencyFilter.StartsWithAnyOf(key(dep)), link)
     }
 
     fun override(dep: Provider<out ModuleDependency>, link: LinkOverride) {
         override(dep.get(), link)
+    }
+
+    fun override(filter: DependencyFilter, link: LinkOverride) {
+        overrides.add(OverrideRule(filter, link))
     }
 
     fun exclude(dep: ModuleDependency) {
@@ -59,6 +79,13 @@ abstract class JavadocLinksExtension {
     }
 
     private fun key(dep: ModuleDependency) = dep.group + ':' + dep.name + ':' + (dep.version ?: "")
+
+    data class OverrideRule(
+        @get:Nested
+        val filter: DependencyFilter,
+        @get:Nested
+        val override: LinkOverride
+    )
 
     fun interface LinkOverride {
         fun link(defaultProvider: String, id: ModuleComponentIdentifier): String
@@ -88,8 +115,11 @@ abstract class JavadocLinksExtension {
 
         class PaperApiRule : LinkOverride {
             companion object {
-                const val KEY = "io.papermc.paper:paper-api"
-                const val LEGACY_KEY = "com.destroystokyo.paper:paper-api"
+                val FILTER = DependencyFilter.StartsWithAnyOf(
+                    "io.papermc.paper:paper-api:",
+                    "com.destroystokyo.paper:paper-api:",
+                )
+                val RULE = OverrideRule(FILTER, PaperApiRule())
             }
 
             override fun link(defaultProvider: String, id: ModuleComponentIdentifier): String {
@@ -100,7 +130,8 @@ abstract class JavadocLinksExtension {
 
         class KyoriRule : LinkOverride {
             companion object {
-                const val KEY = "net.kyori:"
+                val FILTER = DependencyFilter.StartsWithAnyOf("net.kyori:")
+                val RULE = OverrideRule(FILTER, KyoriRule())
             }
 
             override fun link(defaultProvider: String, id: ModuleComponentIdentifier): String {
@@ -114,8 +145,11 @@ abstract class JavadocLinksExtension {
 
         class Log4jRule : LinkOverride {
             companion object {
-                const val API_KEY = "org.apache.logging.log4j:log4j-api:"
-                const val CORE_KEY = "org.apache.logging.log4j:log4j-core:"
+                val FILTER = DependencyFilter.StartsWithAnyOf(
+                    "org.apache.logging.log4j:log4j-api:",
+                    "org.apache.logging.log4j:log4j-core:",
+                )
+                val RULE = OverrideRule(FILTER, Log4jRule())
             }
 
             override fun link(defaultProvider: String, id: ModuleComponentIdentifier): String {
@@ -130,10 +164,9 @@ abstract class JavadocLinksExtension {
             val exceptFor: Set<String> = DEFAULT_EXCEPTIONS
         ) : DependencyFilter {
             companion object {
-                val DEFAULT_EXCEPTIONS = setOf(
-                    LinkOverride.PaperApiRule.KEY,
-                    LinkOverride.PaperApiRule.LEGACY_KEY,
-                )
+                val DEFAULT_EXCEPTIONS = buildSet {
+                    addAll(LinkOverride.PaperApiRule.FILTER.strings)
+                }
             }
 
             override fun test(t: ModuleComponentIdentifier): Boolean {
@@ -150,6 +183,18 @@ abstract class JavadocLinksExtension {
                 return true
             }
         }
+
+        class StartsWithAnyOf(
+            @get:Input
+            val strings: Set<String>
+        ) : DependencyFilter {
+            constructor(vararg strings: String) : this(strings.toSet())
+
+            override fun test(id: ModuleComponentIdentifier): Boolean {
+                val coords = coordinates(id)
+                return strings.any { coords.startsWith(it) }
+            }
+        }
     }
 
     /* start dependency filter helpers */
@@ -157,5 +202,8 @@ abstract class JavadocLinksExtension {
         DependencyFilter.NoSnapshots(exceptFor)
 
     fun passThrough(): DependencyFilter.PassThrough = DependencyFilter.PassThrough()
+
+    fun startsWithAnyOf(vararg strings: String): DependencyFilter.StartsWithAnyOf =
+        DependencyFilter.StartsWithAnyOf(strings.toSet())
     /* end dependency filter helpers */
 }

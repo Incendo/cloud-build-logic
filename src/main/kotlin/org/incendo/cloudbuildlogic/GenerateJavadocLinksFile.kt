@@ -11,7 +11,7 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.MapProperty
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.services.ServiceReference
@@ -38,7 +38,7 @@ import kotlin.io.path.writeText
 @Suppress("LeakingThis")
 abstract class GenerateJavadocLinksFile : DefaultTask() {
     @get:Nested
-    abstract val overrides: MapProperty<String, JavadocLinksExtension.LinkOverride>
+    abstract val overrides: ListProperty<JavadocLinksExtension.OverrideRule>
 
     @get:Input
     abstract val skip: SetProperty<String>
@@ -107,9 +107,9 @@ abstract class GenerateJavadocLinksFile : DefaultTask() {
 
             var link: String? = null
 
-            for ((c, o) in overrides.get()) {
-                if (coordinates.startsWith(c)) {
-                    link = o.link(defaultJavadocProvider.get(), id)
+            for ((filter, linkOverride) in overrides.get()) {
+                if (filter.test(id)) {
+                    link = linkOverride.link(defaultJavadocProvider.get(), id)
                     break
                 }
             }

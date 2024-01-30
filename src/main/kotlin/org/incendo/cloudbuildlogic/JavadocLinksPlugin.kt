@@ -64,7 +64,7 @@ abstract class JavadocLinksPlugin : Plugin<Project> {
                     unpackedJavadocs.convention(target.layout.buildDirectory.dir("tmp/$name/unpackedJavadocs"))
                     overrides.convention(ext.overrides)
                     skip.convention(ext.excludes)
-                    defaultJavadocProvider.convention("https://javadoc.io/doc/{group}/{name}/{version}")
+                    defaultJavadocProvider.convention(ext.defaultJavadocProvider)
                     filter.convention(ext.filter)
                     javadocAvailabilityService.set(service)
                     checkJavadocHostAvailability.convention(
