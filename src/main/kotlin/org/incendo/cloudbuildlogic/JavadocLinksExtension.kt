@@ -28,8 +28,9 @@ abstract class JavadocLinksExtension {
         return mapOf(
             LinkOverride.KyoriRule.KEY to LinkOverride.KyoriRule(),
             LinkOverride.PaperApiRule.KEY to LinkOverride.PaperApiRule(),
+            LinkOverride.PaperApiRule.LEGACY_KEY to LinkOverride.PaperApiRule(),
             LinkOverride.Log4jRule.API_KEY to LinkOverride.Log4jRule(),
-            LinkOverride.Log4jRule.CORE_KEY to LinkOverride.Log4jRule()
+            LinkOverride.Log4jRule.CORE_KEY to LinkOverride.Log4jRule(),
         )
     }
 
@@ -88,6 +89,7 @@ abstract class JavadocLinksExtension {
         class PaperApiRule : LinkOverride {
             companion object {
                 const val KEY = "io.papermc.paper:paper-api"
+                const val LEGACY_KEY = "com.destroystokyo.paper:paper-api"
             }
 
             override fun link(defaultProvider: String, id: ModuleComponentIdentifier): String {
@@ -125,8 +127,15 @@ abstract class JavadocLinksExtension {
     fun interface DependencyFilter : Predicate<ModuleComponentIdentifier> {
         data class NoSnapshots(
             @get:Input
-            val exceptFor: Set<String> = emptySet()
+            val exceptFor: Set<String> = DEFAULT_EXCEPTIONS
         ) : DependencyFilter {
+            companion object {
+                val DEFAULT_EXCEPTIONS = setOf(
+                    LinkOverride.PaperApiRule.KEY,
+                    LinkOverride.PaperApiRule.LEGACY_KEY,
+                )
+            }
+
             override fun test(t: ModuleComponentIdentifier): Boolean {
                 val coords = coordinates(t)
                 if (exceptFor.any { coords.startsWith(it) }) {
