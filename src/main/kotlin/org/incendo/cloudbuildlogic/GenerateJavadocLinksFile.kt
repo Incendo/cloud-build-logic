@@ -68,7 +68,7 @@ abstract class GenerateJavadocLinksFile : DefaultTask() {
     abstract val javadocAvailabilityService: Property<JavadocAvailabilityService>
 
     @get:Input
-    abstract val checkJavadocHostAvailability: Property<Boolean>
+    abstract val checkJavadocAvailability: Property<Boolean>
 
     // We use two separate configurations to allow for excluding dependencies from javadoc downloading without excluding them
     // from javadoc linking entirely.
@@ -121,7 +121,7 @@ abstract class GenerateJavadocLinksFile : DefaultTask() {
             val javadocArtifact = javadocArtifacts.artifacts.get()
                 .find { it.moduleComponentId() != null && it.moduleComponentId() == id }
 
-            if (checkJavadocHostAvailability.get()) {
+            if (checkJavadocAvailability.get()) {
                 val online = javadocAvailabilityService.get().areJavadocsAvailable(link)
                 if (!online) {
                     throw GradleException("Javadoc host is offline or invalid: '$link' (see above for further details)")

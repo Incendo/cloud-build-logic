@@ -6,12 +6,14 @@ import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapsh
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Nested
 import org.incendo.cloudbuildlogic.JavadocLinksExtension.LinkOverride.Companion.replaceVariables
 import java.util.function.Predicate
+import javax.inject.Inject
 
-abstract class JavadocLinksExtension {
+abstract class JavadocLinksExtension @Inject constructor(providers: ProviderFactory) {
     /**
      * Resolvers for custom Javadoc links.
      */
@@ -32,14 +34,24 @@ abstract class JavadocLinksExtension {
      */
     abstract val defaultJavadocProvider: Property<String>
 
+    /**
+     * Whether to check for availability of resolved Javadoc links.
+     */
+    abstract val checkJavadocAvailability: Property<Boolean>
+
     init {
-        init()
+        init(providers)
     }
 
-    private fun init() {
+    private fun init(providers: ProviderFactory) {
         filter.convention(DependencyFilter.NoSnapshots())
         overrides.addAll(defaultOverrides())
         defaultJavadocProvider.convention("https://javadoc.io/doc/{group}/{name}/{version}")
+        checkJavadocAvailability.convention(
+            providers.gradleProperty("cloud-build-logic.checkJavadocAvailability")
+                .map { it.toBoolean() }
+                .orElse(true)
+        )
     }
 
     fun defaultOverrides(): List<OverrideRule> {

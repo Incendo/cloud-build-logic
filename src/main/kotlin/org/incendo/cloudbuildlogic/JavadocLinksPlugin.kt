@@ -75,11 +75,7 @@ abstract class JavadocLinksPlugin : Plugin<Project> {
                     defaultJavadocProvider.convention(ext.defaultJavadocProvider)
                     filter.convention(ext.filter)
                     javadocAvailabilityService.set(service)
-                    checkJavadocHostAvailability.convention(
-                        target.providers.gradleProperty("cloud-build-logic.checkJavadocHostAvailability")
-                            .map { it.toBoolean() }
-                            .orElse(true)
-                    )
+                    checkJavadocAvailability.convention(ext.checkJavadocAvailability)
                     dependenciesFrom(linkDependencies, javadocView)
                 }
             }
