@@ -151,4 +151,11 @@ abstract class JavadocLinksExtension {
             }
         }
     }
+
+    /* start dependency filter helpers */
+    fun noSnapshots(exceptFor: Set<String> = DependencyFilter.NoSnapshots.DEFAULT_EXCEPTIONS): DependencyFilter.NoSnapshots =
+        DependencyFilter.NoSnapshots(exceptFor)
+
+    fun passThrough(): DependencyFilter.PassThrough = DependencyFilter.PassThrough()
+    /* end dependency filter helpers */
 }
