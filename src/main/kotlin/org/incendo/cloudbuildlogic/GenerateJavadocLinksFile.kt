@@ -122,6 +122,8 @@ abstract class GenerateJavadocLinksFile : DefaultTask() {
                 .find { it.moduleComponentId() != null && it.moduleComponentId() == id }
 
             if (checkJavadocAvailability.get()) {
+                // We only really need to verify offline linked docs. But with semi-reliable services like javadoc.io,
+                // it's useful to have our requests for a given module's docs be blocked behind a single 'priming' request.
                 val online = javadocAvailabilityService.get().areJavadocsAvailable(link)
                 if (!online) {
                     throw GradleException("Javadoc host is offline or invalid: '$link' (see above for further details)")
