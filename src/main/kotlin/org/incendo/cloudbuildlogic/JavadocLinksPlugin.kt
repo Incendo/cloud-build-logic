@@ -6,6 +6,7 @@ import org.gradle.api.Project
 import org.gradle.api.attributes.Bundling
 import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.DocsType
+import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
@@ -37,6 +38,13 @@ abstract class JavadocLinksPlugin : Plugin<Project> {
                     extendsFrom(target.configurations.named(apiElementsConfigurationName).get())
                     isCanBeResolved = true
                     isCanBeConsumed = false
+
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, target.objects.named(Category.LIBRARY))
+                        attribute(Bundling.BUNDLING_ATTRIBUTE, target.objects.named(Bundling.EXTERNAL))
+                        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, target.objects.named(LibraryElements.JAR))
+                        attribute(Usage.USAGE_ATTRIBUTE, target.objects.named(Usage.JAVA_API))
+                    }
                 }
 
                 val javadocView = target.configurations.register(linkDependencies.name + "Javadoc") {
