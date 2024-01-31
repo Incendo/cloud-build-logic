@@ -82,20 +82,22 @@ abstract class JavadocLinksPlugin : Plugin<Project> {
         }
 
         target.afterEvaluate {
+            // Just disable for Kotlin projects. Supporting mixed language source sets is out of scope.
+            if (plugins.hasPlugin("org.jetbrains.kotlin.jvm")) {
+                return@afterEvaluate
+            }
+
             forEachTargetedSourceSet {
-                // Just disable for Kotlin projects. Supporting mixed language source sets is out of scope.
-                if (!plugins.hasPlugin("org.jetbrains.kotlin.jvm")) {
-                    val linksFileTask = tasks.named<GenerateJavadocLinksFile>(formatName("javadocLinksFile"))
-                    val linksOutput = linksFileTask.flatMap { it.linksFile }
-                    tasks.maybeConfigure<Javadoc>(javadocTaskName) {
-                        inputs.file(linksOutput)
-                            .withPropertyName("javadocLinksFile")
-                        inputs.dir(linksFileTask.flatMap { it.unpackedJavadocs })
-                            .withPropertyName("unpackedJavadocs")
-                        doFirst {
-                            val opts = options as StandardJavadocDocletOptions
-                            opts.linksFile(linksOutput.get().asFile)
-                        }
+                val linksFileTask = tasks.named<GenerateJavadocLinksFile>(formatName("javadocLinksFile"))
+                val linksOutput = linksFileTask.flatMap { it.linksFile }
+                tasks.maybeConfigure<Javadoc>(javadocTaskName) {
+                    inputs.file(linksOutput)
+                        .withPropertyName("javadocLinksFile")
+                    inputs.dir(linksFileTask.flatMap { it.unpackedJavadocs })
+                        .withPropertyName("unpackedJavadocs")
+                    doFirst {
+                        val opts = options as StandardJavadocDocletOptions
+                        opts.linksFile(linksOutput.get().asFile)
                     }
                 }
             }

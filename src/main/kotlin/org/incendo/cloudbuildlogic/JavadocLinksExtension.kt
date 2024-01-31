@@ -186,7 +186,7 @@ abstract class JavadocLinksExtension @Inject constructor(providers: ProviderFact
                 if (exceptFor.any { coords.startsWith(it) }) {
                     return true
                 }
-                return t !is MavenUniqueSnapshotComponentIdentifier
+                return t !is MavenUniqueSnapshotComponentIdentifier && !t.version.endsWith("-SNAPSHOT")
             }
         }
 
