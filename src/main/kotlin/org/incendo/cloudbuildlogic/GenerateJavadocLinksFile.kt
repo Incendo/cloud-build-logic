@@ -3,6 +3,7 @@ package org.incendo.cloudbuildlogic
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.NamedDomainObjectProvider
+import org.gradle.api.artifacts.ArtifactCollection
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.file.ArchiveOperations
@@ -13,6 +14,7 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.services.ServiceReference
 import org.gradle.api.tasks.CacheableTask
@@ -79,12 +81,17 @@ abstract class GenerateJavadocLinksFile : DefaultTask() {
     @get:Nested
     val javadocArtifacts: Artifacts = objects.newInstance(Artifacts::class)
 
+    @get:Nested
+    val sourcesArtifacts: Artifacts = objects.newInstance(Artifacts::class)
+
     fun dependenciesFrom(
         configuration: NamedDomainObjectProvider<Configuration>,
-        javadocView: NamedDomainObjectProvider<Configuration>
+        javadocView: NamedDomainObjectProvider<Configuration>,
+        sourcesView: Provider<ArtifactCollection>,
     ) {
         artifacts.setFrom(configuration)
         javadocArtifacts.setFrom(javadocView)
+        sourcesArtifacts.setFrom(sourcesView)
     }
 
     @TaskAction
@@ -149,6 +156,11 @@ abstract class GenerateJavadocLinksFile : DefaultTask() {
 
             output.add(line.toString())
         }
+
+        for (sourceArtifact in sourcesArtifacts.artifacts.get()) {
+            output.add("-sourcepath ${sourceArtifact.file.absolutePath}")
+        }
+
         file.writeText(output.sorted().joinToString("\n"))
     }
 
@@ -165,8 +177,13 @@ abstract class GenerateJavadocLinksFile : DefaultTask() {
         abstract val files: ConfigurableFileCollection
 
         fun setFrom(configuration: NamedDomainObjectProvider<Configuration>) {
-            artifacts.set(configuration.map { it.incoming.artifacts })
-            files.setFrom(configuration)
+            artifacts.set(configuration.flatMap { it.incoming.artifacts.resolvedArtifacts })
+            files.setFrom(configuration.map { it.incoming.artifacts.artifactFiles })
+        }
+
+        fun setFrom(artifactCollection: Provider<ArtifactCollection>) {
+            artifacts.set(artifactCollection.flatMap { it.resolvedArtifacts })
+            files.setFrom(artifactCollection.map { it.artifactFiles })
         }
     }
 }

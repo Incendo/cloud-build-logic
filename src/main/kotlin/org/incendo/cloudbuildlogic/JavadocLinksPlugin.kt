@@ -3,11 +3,7 @@ package org.incendo.cloudbuildlogic
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.attributes.Bundling
-import org.gradle.api.attributes.Category
-import org.gradle.api.attributes.DocsType
-import org.gradle.api.attributes.LibraryElements
-import org.gradle.api.attributes.Usage
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.javadoc.Javadoc
@@ -18,11 +14,18 @@ import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.registerIfAbsent
+import org.incendo.cloudbuildlogic.util.apiElements
+import org.incendo.cloudbuildlogic.util.extendsFromFlattened
+import org.incendo.cloudbuildlogic.util.javadocElements
+import org.incendo.cloudbuildlogic.util.sourcesElements
 import javax.inject.Inject
 
 abstract class JavadocLinksPlugin : Plugin<Project> {
     @get:Inject
     abstract val buildEventsListenerRegistry: BuildEventsListenerRegistry
+
+    @get:Inject
+    abstract val objects: ObjectFactory
 
     override fun apply(target: Project) {
         val ext = target.extensions.create("javadocLinks", JavadocLinksExtension::class)
@@ -40,31 +43,38 @@ abstract class JavadocLinksPlugin : Plugin<Project> {
                     isCanBeConsumed = false
 
                     attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, target.objects.named(Category.LIBRARY))
-                        attribute(Bundling.BUNDLING_ATTRIBUTE, target.objects.named(Bundling.EXTERNAL))
-                        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, target.objects.named(LibraryElements.JAR))
-                        attribute(Usage.USAGE_ATTRIBUTE, target.objects.named(Usage.JAVA_API))
+                        apiElements(objects)
                     }
                 }
 
-                val javadocView = target.configurations.register(linkDependencies.name + "Javadoc") {
+                val javadocConfig = target.configurations.register(linkDependencies.name + "Javadoc") {
                     isCanBeResolved = true
                     isCanBeConsumed = false
 
                     attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, target.objects.named(Category.DOCUMENTATION))
-                        attribute(Bundling.BUNDLING_ATTRIBUTE, target.objects.named(Bundling.EXTERNAL))
-                        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, target.objects.named(DocsType.JAVADOC))
-                        attribute(Usage.USAGE_ATTRIBUTE, target.objects.named(Usage.JAVA_RUNTIME))
+                        javadocElements(objects)
                     }
 
                     // Gradle doesn't consider transitives when we simply extend the configuration using the above attributes
-                    defaultDependencies {
-                        for (artifact in linkDependencies.get().incoming.artifacts.artifacts) {
-                            val id = artifact.moduleComponentId() ?: continue
-                            add(target.dependencies.create(coordinates(id)))
-                        }
+                    extendsFromFlattened(linkDependencies, target.dependencies)
+                }
+
+                val sourcesConfig = target.configurations.register(linkDependencies.name + "Sources") {
+                    isCanBeResolved = true
+                    isCanBeConsumed = false
+
+                    attributes {
+                        sourcesElements(objects)
                     }
+
+                    // Gradle doesn't consider transitives when we simply extend the configuration using the above attributes
+                    extendsFromFlattened(linkDependencies, target.dependencies)
+                }
+                val sourcesView = sourcesConfig.map {
+                    val view = it.incoming.artifactView {
+                        lenient(true)
+                    }
+                    return@map view.artifacts
                 }
 
                 target.tasks.register<GenerateJavadocLinksFile>(formatName("javadocLinksFile")) {
@@ -76,7 +86,7 @@ abstract class JavadocLinksPlugin : Plugin<Project> {
                     filter.convention(ext.filter)
                     javadocAvailabilityService.set(service)
                     checkJavadocAvailability.convention(ext.checkJavadocAvailability)
-                    dependenciesFrom(linkDependencies, javadocView)
+                    dependenciesFrom(linkDependencies, javadocConfig, sourcesView)
                 }
             }
         }
