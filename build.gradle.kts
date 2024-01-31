@@ -97,7 +97,7 @@ plugin("spotless", "org.incendo.cloudbuildlogic.SpotlessPlugin")
 plugin("spotless.root-project", "org.incendo.cloudbuildlogic.SpotlessRootProjectPlugin")
 plugin("publishing", "org.incendo.cloudbuildlogic.PublishingPlugin")
 plugin("publishing.root-project", "org.incendo.cloudbuildlogic.RootProjectPublishingPlugin")
-plugin("javadoc-links", "org.incendo.cloudbuildlogic.JavadocLinksPlugin")
+plugin("javadoc-links", "org.incendo.cloudbuildlogic.javadoclinks.JavadocLinksPlugin")
 plugin("revapi", "org.incendo.cloudbuildlogic.RevapiConventions")
 
 fun plugin(name: String, implClass: String) {

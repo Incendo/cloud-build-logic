@@ -5,8 +5,6 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.kotlin.dsl.project
-import org.incendo.cloudbuildlogic.coordinates
-import org.incendo.cloudbuildlogic.moduleComponentId
 
 /**
  * When [includeProjectDependencies] is false, project dependencies will be excluded,

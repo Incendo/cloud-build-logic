@@ -1,4 +1,4 @@
-package org.incendo.cloudbuildlogic
+package org.incendo.cloudbuildlogic.javadoclinks
 
 import org.gradle.api.Action
 import org.gradle.api.Plugin
@@ -16,7 +16,9 @@ import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.registerIfAbsent
 import org.incendo.cloudbuildlogic.util.apiElements
 import org.incendo.cloudbuildlogic.util.extendsFromFlattened
+import org.incendo.cloudbuildlogic.util.formatName
 import org.incendo.cloudbuildlogic.util.javadocElements
+import org.incendo.cloudbuildlogic.util.maybeConfigure
 import org.incendo.cloudbuildlogic.util.resolvable
 import org.incendo.cloudbuildlogic.util.sourcesElements
 import javax.inject.Inject

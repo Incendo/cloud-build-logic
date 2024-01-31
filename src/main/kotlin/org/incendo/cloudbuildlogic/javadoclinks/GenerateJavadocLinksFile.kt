@@ -1,4 +1,4 @@
-package org.incendo.cloudbuildlogic
+package org.incendo.cloudbuildlogic.javadoclinks
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
@@ -29,7 +29,9 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.newInstance
-import org.incendo.cloudbuildlogic.JavadocLinksExtension.LinkOverride.Companion.replaceVariables
+import org.incendo.cloudbuildlogic.javadoclinks.JavadocLinksExtension.LinkOverride.Companion.replaceVariables
+import org.incendo.cloudbuildlogic.util.coordinates
+import org.incendo.cloudbuildlogic.util.moduleComponentId
 import javax.inject.Inject
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectories
