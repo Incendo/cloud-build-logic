@@ -17,6 +17,7 @@ import org.gradle.kotlin.dsl.registerIfAbsent
 import org.incendo.cloudbuildlogic.util.apiElements
 import org.incendo.cloudbuildlogic.util.extendsFromFlattened
 import org.incendo.cloudbuildlogic.util.javadocElements
+import org.incendo.cloudbuildlogic.util.resolvable
 import org.incendo.cloudbuildlogic.util.sourcesElements
 import javax.inject.Inject
 
@@ -38,35 +39,27 @@ abstract class JavadocLinksPlugin : Plugin<Project> {
         target.plugins.withId("java-library") {
             target.forEachTargetedSourceSet {
                 val linkDependencies = target.configurations.register(formatName("javadocLinks")) {
-                    extendsFrom(target.configurations.named(apiElementsConfigurationName).get())
-                    isCanBeResolved = true
-                    isCanBeConsumed = false
-
+                    resolvable()
                     attributes {
                         apiElements(objects)
                     }
+                    extendsFrom(target.configurations.named(apiElementsConfigurationName).get())
                 }
 
                 val javadocConfig = target.configurations.register(linkDependencies.name + "Javadoc") {
-                    isCanBeResolved = true
-                    isCanBeConsumed = false
-
+                    resolvable()
                     attributes {
                         javadocElements(objects)
                     }
-
                     // Gradle doesn't consider transitives when we simply extend the configuration using the above attributes
                     extendsFromFlattened(linkDependencies, target.dependencies)
                 }
 
                 val sourcesConfig = target.configurations.register(linkDependencies.name + "Sources") {
-                    isCanBeResolved = true
-                    isCanBeConsumed = false
-
+                    resolvable()
                     attributes {
                         sourcesElements(objects)
                     }
-
                     // Gradle doesn't consider transitives when we simply extend the configuration using the above attributes
                     extendsFromFlattened(linkDependencies, target.dependencies)
                 }

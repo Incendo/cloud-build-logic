@@ -17,3 +17,8 @@ fun Configuration.extendsFromFlattened(
         }
     }
 }
+
+fun Configuration.resolvable() {
+    isCanBeResolved = true
+    isCanBeConsumed = false
+}
