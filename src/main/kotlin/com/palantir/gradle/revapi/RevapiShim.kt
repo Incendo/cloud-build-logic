@@ -4,7 +4,7 @@ import org.gradle.api.Project
 import java.util.function.Predicate
 import java.util.stream.Collectors
 
-object RevApiShim {
+object RevapiShim {
     fun oldVersionsProvider(
         project: Project,
         filter: Predicate<String> = BetaFilter()
