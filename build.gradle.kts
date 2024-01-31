@@ -13,6 +13,7 @@ dependencies {
     api(libs.indra.crossdoc)
     api(libs.errorprone.gradle)
     api(libs.spotless)
+    api(libs.palantir.revapi)
     implementation(libs.palantir.baseline)
 }
 
@@ -97,6 +98,7 @@ plugin("spotless.root-project", "org.incendo.cloudbuildlogic.SpotlessRootProject
 plugin("publishing", "org.incendo.cloudbuildlogic.PublishingPlugin")
 plugin("publishing.root-project", "org.incendo.cloudbuildlogic.RootProjectPublishingPlugin")
 plugin("javadoc-links", "org.incendo.cloudbuildlogic.JavadocLinksPlugin")
+plugin("revapi", "org.incendo.cloudbuildlogic.RevapiConventions")
 
 fun plugin(name: String, implClass: String) {
     val prefixedId = "org.incendo.cloud-build-logic.$name"
