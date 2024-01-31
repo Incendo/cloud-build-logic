@@ -72,7 +72,7 @@ abstract class JavadocLinksPlugin : Plugin<Project> {
                     return@map view.artifacts
                 }
 
-                target.tasks.register<GenerateJavadocLinksFile>(formatName("javadocLinksFile")) {
+                target.tasks.register<PrepareJavadocLinks>(taskName()) {
                     linksFile.convention(target.layout.buildDirectory.file("tmp/$name/links.options"))
                     unpackedJavadocs.convention(target.layout.buildDirectory.dir("tmp/$name/unpackedJavadocs"))
                     overrides.convention(ext.overrides)
@@ -93,13 +93,15 @@ abstract class JavadocLinksPlugin : Plugin<Project> {
             }
 
             forEachTargetedSourceSet {
-                val linksFileTask = tasks.named<GenerateJavadocLinksFile>(formatName("javadocLinksFile"))
+                val linksFileTask = tasks.named<PrepareJavadocLinks>(taskName())
                 val linksOutput = linksFileTask.flatMap { it.linksFile }
                 tasks.maybeConfigure<Javadoc>(javadocTaskName) {
                     inputs.file(linksOutput)
                         .withPropertyName("javadocLinksFile")
                     inputs.dir(linksFileTask.flatMap { it.unpackedJavadocs })
                         .withPropertyName("unpackedJavadocs")
+                    inputs.files(linksFileTask.map { it.sourcesArtifacts.files })
+                        .withPropertyName("sourceArtifacts")
                     doFirst {
                         val opts = options as StandardJavadocDocletOptions
                         opts.linksFile(linksOutput.get().asFile)
@@ -107,6 +109,10 @@ abstract class JavadocLinksPlugin : Plugin<Project> {
                 }
             }
         }
+    }
+
+    private fun SourceSet.taskName(): String {
+        return formatName("prepare", "javadocLinks")
     }
 
     private fun Project.forEachTargetedSourceSet(action: Action<SourceSet>) {

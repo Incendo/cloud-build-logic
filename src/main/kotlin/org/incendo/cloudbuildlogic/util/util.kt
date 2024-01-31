@@ -42,9 +42,13 @@ fun coordinates(componentId: ModuleComponentIdentifier): String {
 fun ResolvedArtifactResult.moduleComponentId(): ModuleComponentIdentifier? =
     id.componentIdentifier as? ModuleComponentIdentifier
 
-fun SourceSet.formatName(taskName: String): String {
+fun SourceSet.formatName(suffix: String) = formatName("", suffix)
+
+fun SourceSet.formatName(prefix: String, suffix: String): String {
     if (name == "main") {
-        return taskName
+        val s = if (prefix.isBlank()) suffix else suffix.replaceFirstChar(Char::uppercase)
+        return prefix + s
     }
-    return name + taskName.replaceFirstChar(Char::uppercase)
+    val name = if (prefix.isBlank()) name else name.replaceFirstChar(Char::uppercase)
+    return prefix + name + suffix.replaceFirstChar(Char::uppercase)
 }

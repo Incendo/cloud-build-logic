@@ -40,7 +40,7 @@ import kotlin.io.path.writeText
 
 @CacheableTask
 @Suppress("LeakingThis")
-abstract class GenerateJavadocLinksFile : DefaultTask() {
+abstract class PrepareJavadocLinks : DefaultTask() {
     @get:Nested
     abstract val overrides: ListProperty<JavadocLinksExtension.OverrideRule>
 
