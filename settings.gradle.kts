@@ -16,7 +16,7 @@ plugins {
 
 buildscript {
     dependencies {
-        classpath("org.incendo:cloud-build-logic:0.0.4") {
+        classpath("org.incendo:cloud-build-logic:0.0.8") {
             isTransitive = false
         }
     }
