@@ -1,4 +1,4 @@
-package org.incendo.cloudbuildlogic
+package org.incendo.cloudbuildlogic.javadoclinks
 
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
@@ -9,7 +9,8 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Nested
-import org.incendo.cloudbuildlogic.JavadocLinksExtension.LinkOverride.Companion.replaceVariables
+import org.incendo.cloudbuildlogic.javadoclinks.JavadocLinksExtension.LinkOverride.Companion.replaceVariables
+import org.incendo.cloudbuildlogic.util.coordinates
 import java.util.function.Predicate
 import javax.inject.Inject
 

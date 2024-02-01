@@ -5,6 +5,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.configure
+import org.incendo.cloudbuildlogic.javadoclinks.JavadocLinksPlugin
 
 class PublishingPlugin : Plugin<Project> {
     override fun apply(target: Project) {

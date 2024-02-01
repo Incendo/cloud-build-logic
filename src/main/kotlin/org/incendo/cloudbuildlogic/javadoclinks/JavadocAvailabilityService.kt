@@ -1,4 +1,4 @@
-package org.incendo.cloudbuildlogic
+package org.incendo.cloudbuildlogic.javadoclinks
 
 import org.gradle.api.GradleException
 import org.gradle.api.logging.Logging

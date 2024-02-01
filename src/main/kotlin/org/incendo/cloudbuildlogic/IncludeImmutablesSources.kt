@@ -13,6 +13,7 @@ import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.named
+import org.incendo.cloudbuildlogic.util.maybeConfigure
 
 /**
  * Plugin that includes generated sources in source jars and javadoc for source sets with the
