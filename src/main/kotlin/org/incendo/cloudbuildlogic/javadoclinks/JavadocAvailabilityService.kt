@@ -6,8 +6,10 @@ import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
+import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
+import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
 
 abstract class JavadocAvailabilityService : BuildService<BuildServiceParameters.None>,
@@ -19,19 +21,42 @@ abstract class JavadocAvailabilityService : BuildService<BuildServiceParameters.
     private val cache = ConcurrentHashMap<String, Boolean>()
 
     fun areJavadocsAvailable(url: String): Boolean = cache.computeIfAbsent(url) {
-        val baseUrl = url.let { if (it.endsWith('/')) it else "$it/" }
-        val urls = setOf("element-list", "package-list/").map { baseUrl + it }
+        checkAvailability(if (it.endsWith('/')) it else "$it/")
+    }
+
+    private fun checkAvailability(url: String, attemptNo: Int = 0): Boolean {
+        val urls = buildList {
+            add(url + "element-list")
+            add(url + "package-list/")
+        }
+        if (attemptNo > 2) {
+            logger.error("Javadoc at '{}' is still not available after 3 attempts.", url)
+            return false
+        }
         val results = mutableListOf<Pair<String, Result<Int>>>()
         for (hostString in urls) {
             val hostUrl = URL(hostString)
             val response = runCatching {
                 val connection = hostUrl.openConnection() as HttpURLConnection
                 connection.instanceFollowRedirects = true
-                connection.getResponseCode()
+                connection.responseCode
             }
             results.add(hostString to response)
             if (response.getOrNull() == HttpURLConnection.HTTP_OK) {
-                return@computeIfAbsent true
+                return true
+            }
+        }
+        if (results.all { it.second.getOrNull() == 403 }) {
+            if (url.startsWith("https://javadoc.io/")) {
+                logger.lifecycle("Got 403 for element-list and package-list/ of '{}', will attempt to prime docs and then retry in 15s...", url)
+                try {
+                    primeJavadocIo(url)
+                } catch (ex: IOException) {
+                    logger.error("Failed to prime Javadocs at '{}'", url, ex)
+                    return false
+                }
+                Thread.sleep(Duration.ofSeconds(15).toMillis())
+                return checkAvailability(url, attemptNo + 1)
             }
         }
         var ex: Throwable? = null
@@ -48,7 +73,18 @@ abstract class JavadocAvailabilityService : BuildService<BuildServiceParameters.
             }
         }
         logger.error("Could not locate element-list or package-list for docs: '$url'", requireNotNull(ex))
-        return@computeIfAbsent false
+        return false
+    }
+
+    private fun primeJavadocIo(url: String) {
+        val staticUrl = url.replace("https://javadoc.io/doc/", "https://javadoc.io/static/")
+        val conn = URL(staticUrl)
+            .openConnection() as HttpURLConnection
+        conn.instanceFollowRedirects = true
+        val responseCode = conn.responseCode
+        if (responseCode != HttpURLConnection.HTTP_OK) {
+            logger.error("Attempt to prime docs via '{}' returned response code {}", staticUrl, responseCode)
+        }
     }
 
     override fun onFinish(event: FinishEvent?) {
