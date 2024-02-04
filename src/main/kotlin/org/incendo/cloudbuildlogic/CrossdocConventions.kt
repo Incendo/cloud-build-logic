@@ -15,7 +15,7 @@ class CrossdocConventions : Plugin<Project> {
             // after any groupId changes
             target.afterEvaluate {
                 target.extensions.getByType(CrossdocExtension::class).apply {
-                    baseUrl().convention("https://javadoc.io/${target.group}/")
+                    baseUrl().convention("https://javadoc.io/doc/${target.group}/")
                 }
             }
         }
