@@ -65,6 +65,9 @@ java {
 tasks.withType<JavaCompile>().configureEach {
     options.release = 8
 }
+tasks.wrapper {
+    distributionType = Wrapper.DistributionType.ALL
+}
 
 kotlin {
     jvmToolchain {
