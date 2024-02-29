@@ -102,6 +102,7 @@ plugin("publishing", "org.incendo.cloudbuildlogic.PublishingPlugin")
 plugin("publishing.root-project", "org.incendo.cloudbuildlogic.RootProjectPublishingPlugin")
 plugin("javadoc-links", "org.incendo.cloudbuildlogic.javadoclinks.JavadocLinksPlugin")
 plugin("revapi", "org.incendo.cloudbuildlogic.RevapiConventions")
+plugin("write-locale-list", "org.incendo.cloudbuildlogic.writelocalelist.WriteLocaleListPlugin")
 
 fun plugin(name: String, implClass: String) {
     val prefixedId = "org.incendo.cloud-build-logic.$name"
