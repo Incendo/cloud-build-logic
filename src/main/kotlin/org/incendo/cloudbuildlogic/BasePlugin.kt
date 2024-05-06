@@ -27,7 +27,8 @@ class BasePlugin : Plugin<Project> {
             // -processing: ignore unclaimed annotations
             // -classfile: ignore annotations/annotation methods missing in dependencies
             // -serial: we don't support java serialization
-            options.compilerArgs.addAll(listOf("-Xlint:-processing,-classfile,-serial", "-Werror"))
+            // -options: ignore java 8 deprecation with jdk 21
+            options.compilerArgs.addAll(listOf("-Xlint:-processing,-classfile,-serial,-options", "-Werror"))
         }
     }
 }
