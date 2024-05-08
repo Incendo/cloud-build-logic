@@ -17,9 +17,9 @@ class BasePlugin : Plugin<Project> {
 
         target.extensions.configure(IndraExtension::class) {
             javaVersions {
-                minimumToolchain(17)
+                minimumToolchain(21)
                 target(8)
-                testWith().set(setOf(8, 11, 17))
+                testWith().set(setOf(8, 11, 17, 21))
             }
         }
 
