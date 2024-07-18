@@ -136,7 +136,7 @@ abstract class JavadocLinksExtension @Inject constructor(providers: ProviderFact
             }
 
             override fun link(defaultProvider: String, id: ModuleComponentIdentifier): String {
-                val ver = id.version.split('.').take(2).joinToString(".")
+                val ver = id.version.split('.', '-').take(2).joinToString(".")
                 return "https://jd.papermc.io/paper/$ver/"
             }
         }
