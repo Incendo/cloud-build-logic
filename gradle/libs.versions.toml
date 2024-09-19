@@ -15,4 +15,4 @@ nexus-publish = { module = "io.github.gradle-nexus:publish-plugin", version.ref 
 errorprone-gradle = { module = "net.ltgt.gradle:gradle-errorprone-plugin", version.ref = "gradleErrorprone" }
 spotless = { module = "com.diffplug.spotless:spotless-plugin-gradle", version.ref = "spotless" }
 palantir-baseline = { module = "com.palantir.baseline:gradle-baseline-java", version = "5.37.0" }
-palantir-revapi = "com.palantir.gradle.revapi:gradle-revapi:1.7.0"
+palantir-revapi = "com.palantir.gradle.revapi:gradle-revapi:1.8.0"
