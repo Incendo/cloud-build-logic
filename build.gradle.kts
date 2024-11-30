@@ -65,7 +65,7 @@ java {
 }
 
 tasks.withType<JavaCompile>().configureEach {
-    options.release = 8
+    options.release = 17
 }
 tasks.wrapper {
     distributionType = Wrapper.DistributionType.ALL
@@ -73,10 +73,10 @@ tasks.wrapper {
 
 kotlin {
     jvmToolchain {
-        languageVersion = JavaLanguageVersion.of(8)
+        languageVersion = JavaLanguageVersion.of(17)
     }
     compilerOptions {
-        jvmTarget = JvmTarget.JVM_1_8
+        jvmTarget = JvmTarget.JVM_17
     }
 }
 
