@@ -4,6 +4,7 @@ import com.palantir.baseline.plugins.BaselineImmutables
 import net.kyori.indra.IndraExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.configure
@@ -29,6 +30,11 @@ class BasePlugin : Plugin<Project> {
             // -serial: we don't support java serialization
             // -options: ignore java 8 deprecation with jdk 21
             options.compilerArgs.addAll(listOf("-Xlint:-processing,-classfile,-serial,-options", "-Werror"))
+        }
+
+        target.tasks.withType<AbstractArchiveTask>().configureEach {
+            isPreserveFileTimestamps = false
+            isReproducibleFileOrder = true
         }
     }
 }
