@@ -11,6 +11,7 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Nested
 import org.incendo.cloudbuildlogic.javadoclinks.JavadocLinksExtension.LinkOverride.Companion.replaceVariables
 import org.incendo.cloudbuildlogic.util.coordinates
+import java.util.Collections
 import java.util.function.Predicate
 import javax.inject.Inject
 
@@ -177,9 +178,14 @@ abstract class JavadocLinksExtension @Inject constructor(providers: ProviderFact
             val exceptFor: Set<String> = DEFAULT_EXCEPTIONS
         ) : DependencyFilter {
             companion object {
-                val DEFAULT_EXCEPTIONS = buildSet {
-                    addAll(LinkOverride.PaperApiRule.FILTER.strings)
-                }
+                // Cannot use buildSet result directly as Kotlin collection impl is not compatible with config cache
+                val DEFAULT_EXCEPTIONS: Set<String> = Collections.unmodifiableSet(
+                    HashSet(
+                        buildSet {
+                            addAll(LinkOverride.PaperApiRule.FILTER.strings)
+                        }
+                    )
+                )
             }
 
             override fun test(t: ModuleComponentIdentifier): Boolean {

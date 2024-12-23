@@ -5,6 +5,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.artifacts.ArtifactCollection
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.file.ArchiveOperations
 import org.gradle.api.file.ConfigurableFileCollection
@@ -108,7 +109,7 @@ abstract class PrepareJavadocLinks : DefaultTask() {
 
         val output = mutableListOf<String>()
         for (resolvedArtifactResult in artifacts.artifacts.get().shuffled()) {
-            val id = resolvedArtifactResult.moduleComponentId() ?: continue
+            val id = resolvedArtifactResult.id.orNull ?: continue
             val coordinates = coordinates(id)
             if (!filter.get().test(id) || skip.get().any { coordinates.startsWith(it) }) {
                 continue
@@ -128,7 +129,7 @@ abstract class PrepareJavadocLinks : DefaultTask() {
             }
 
             val javadocArtifact = javadocArtifacts.artifacts.get()
-                .find { it.moduleComponentId() != null && it.moduleComponentId() == id }
+                .find { it.id.isPresent && it.id.get() == id }
 
             if (checkJavadocAvailability.get()) {
                 // We only really need to verify offline linked docs. But with semi-reliable services like javadoc.io,
@@ -160,15 +161,23 @@ abstract class PrepareJavadocLinks : DefaultTask() {
         }
 
         for (sourceArtifact in sourcesArtifacts.artifacts.get()) {
-            output.add("-sourcepath ${sourceArtifact.file.absolutePath}")
+            output.add("-sourcepath ${sourceArtifact.file.get().asFile.absolutePath}")
         }
 
         file.writeText(output.sorted().joinToString("\n"))
     }
 
     abstract class Artifacts {
+        abstract class Artifact {
+            abstract val file: RegularFileProperty
+            abstract val id: Property<ModuleComponentIdentifier>
+        }
+
+        @get:Inject
+        abstract val objects: ObjectFactory
+
         @get:Internal
-        abstract val artifacts: SetProperty<ResolvedArtifactResult>
+        abstract val artifacts: SetProperty<Artifact>
 
         /**
          * Only here to ensure inputs get wired properly. [artifacts] is what we care about.
@@ -179,13 +188,26 @@ abstract class PrepareJavadocLinks : DefaultTask() {
         abstract val files: ConfigurableFileCollection
 
         fun setFrom(configuration: NamedDomainObjectProvider<Configuration>) {
-            artifacts.set(configuration.flatMap { it.incoming.artifacts.resolvedArtifacts })
+            artifacts.set(
+                configuration.flatMap { it.incoming.artifacts.resolvedArtifacts }
+                    .map { artifacts -> asArtifacts(artifacts) }
+            )
             files.setFrom(configuration.map { it.incoming.artifacts.artifactFiles })
         }
 
         fun setFrom(artifactCollection: Provider<ArtifactCollection>) {
-            artifacts.set(artifactCollection.flatMap { it.resolvedArtifacts })
+            artifacts.set(
+                artifactCollection.flatMap { it.resolvedArtifacts }
+                    .map { artifacts -> asArtifacts(artifacts) }
+            )
             files.setFrom(artifactCollection.map { it.artifactFiles })
+        }
+
+        private fun asArtifacts(artifacts: Set<ResolvedArtifactResult>): List<Artifact> = artifacts.map { artifact ->
+            objects.newInstance(Artifact::class).apply {
+                file.set(artifact.file)
+                id.set(artifact.moduleComponentId())
+            }
         }
     }
 }
