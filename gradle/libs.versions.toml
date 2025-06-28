@@ -1,17 +1,16 @@
 [plugins]
-nexus-publish = { id = "io.github.gradle-nexus.publish-plugin", version.ref = "nexus-publish" }
+centralPublishing = { id = "dev.lukebemish.central-portal-publishing", version.ref = "centralPublishing" }
 
 [versions]
 indra = "3.1.3"
 gradleErrorprone = "4.1.0"
 spotless = "6.25.0"
-nexus-publish = "2.0.0"
+centralPublishing = "0.1.7"
 
 [libraries]
 indra-common = { module = "net.kyori:indra-common", version.ref = "indra" }
 indra-crossdoc = { module = "net.kyori:indra-crossdoc", version.ref = "indra" }
-indra-publishing-sonatype = { module = "net.kyori:indra-publishing-sonatype", version.ref = "indra" }
-nexus-publish = { module = "io.github.gradle-nexus:publish-plugin", version.ref = "nexus-publish" }
+centralPublishing = { module = "dev.lukebemish:central-portal-publishing", version.ref = "centralPublishing" }
 errorprone-gradle = { module = "net.ltgt.gradle:gradle-errorprone-plugin", version.ref = "gradleErrorprone" }
 spotless = { module = "com.diffplug.spotless:spotless-plugin-gradle", version.ref = "spotless" }
 palantir-baseline = { module = "com.palantir.baseline:gradle-baseline-java", version = "6.9.0" }

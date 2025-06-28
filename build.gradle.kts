@@ -1,3 +1,5 @@
+import dev.lukebemish.centralportalpublishing.CentralPortalRepositoryHandlerExtension
+import org.gradle.kotlin.dsl.getByType
 import org.incendo.cloudbuildlogic.jmp
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -5,13 +7,12 @@ plugins {
     `kotlin-dsl`
     `maven-publish`
     signing
-    alias(libs.plugins.nexus.publish)
+    alias(libs.plugins.centralPublishing)
 }
 
 dependencies {
     api(libs.indra.common)
-    api(libs.indra.publishing.sonatype)
-    api(libs.nexus.publish) // Upgrade version from indra-publishing-sonatype transitive dep
+    api(libs.centralPublishing)
     api(libs.indra.crossdoc)
     api(libs.errorprone.gradle)
     api(libs.spotless)
@@ -28,32 +29,46 @@ signing {
     }
 }
 
-nexusPublishing {
-    repositories {
-        sonatype()
-    }
-}
-
 val ghUrl = "https://github.com/Incendo/cloud-build-logic"
 
-publishing.publications.withType(MavenPublication::class).configureEach {
-    pom {
-        name.convention("Cloud Build Logic")
-        description.convention(project.description)
-        url.convention(ghUrl)
-        licenses {
-            license {
-                name = "MIT License"
-                url = "https://www.opensource.org/licenses/mit-license.php"
+centralPortalPublishing.bundle("release") {
+    username = providers.gradleProperty("sonatypeUsername")
+    password = providers.gradleProperty("sonatypePassword")
+    publishingType = "AUTOMATIC"
+}
+
+publishing {
+    publications.withType(MavenPublication::class).configureEach {
+        pom {
+            name.convention("Cloud Build Logic")
+            description.convention(project.description)
+            url.convention(ghUrl)
+            licenses {
+                license {
+                    name = "MIT License"
+                    url = "https://www.opensource.org/licenses/mit-license.php"
+                }
+            }
+            developers {
+                jmp()
+            }
+            scm {
+                connection = "scm:git:git://github.com/Incendo/cloud-build-logic.git"
+                developerConnection = "scm:git:ssh://github.com:Incendo/cloud-build-logic.git"
+                url = "https://github.com/Incendo/cloud-build-logic/tree/master"
             }
         }
-        developers {
-            jmp()
-        }
-        scm {
-            connection = "scm:git:git://github.com/Incendo/cloud-build-logic.git"
-            developerConnection = "scm:git:ssh://github.com:Incendo/cloud-build-logic.git"
-            url = "https://github.com/Incendo/cloud-build-logic/tree/master"
+    }
+    repositories {
+        val portal = (this as ExtensionAware).extensions.getByType(CentralPortalRepositoryHandlerExtension::class)
+        portal.portalBundle(":", "release")
+
+        maven("https://central.sonatype.com/repository/maven-snapshots/") {
+            name = "SonatypeSnapshots"
+            credentials(PasswordCredentials::class) {
+                username = providers.gradleProperty("sonatypeUsername").getOrElse("username")
+                password = providers.gradleProperty("sonatypePassword").getOrElse("password")
+            }
         }
     }
 }
