@@ -1,8 +1,8 @@
 package org.incendo.cloudbuildlogic
 
-import com.palantir.gradle.revapi.RevapiShim
-import com.palantir.gradle.revapi.RevapiExtension
-import com.palantir.gradle.revapi.RevapiPlugin
+import org.revapi.gradle.RevapiShim
+import org.revapi.gradle.RevapiExtension
+import org.revapi.gradle.RevapiPlugin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.apply

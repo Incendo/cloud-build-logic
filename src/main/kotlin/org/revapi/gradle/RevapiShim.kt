@@ -1,4 +1,4 @@
-package com.palantir.gradle.revapi
+package org.revapi.gradle
 
 import org.gradle.api.Project
 import java.util.function.Predicate

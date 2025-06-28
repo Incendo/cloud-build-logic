@@ -16,7 +16,7 @@ dependencies {
     api(libs.indra.crossdoc)
     api(libs.errorprone.gradle)
     api(libs.spotless)
-    api(libs.palantir.revapi)
+    api(libs.revapi)
     implementation(libs.palantir.baseline)
 }
 
