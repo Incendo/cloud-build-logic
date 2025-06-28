@@ -15,7 +15,7 @@ class SpotlessPlugin : Plugin<Project> {
     }
 
     private fun FormatExtension.applyCommon(spaces: Int = 4) {
-        indentWithSpaces(spaces)
+        leadingTabsToSpaces(spaces)
         trimTrailingWhitespace()
         endWithNewline()
     }
