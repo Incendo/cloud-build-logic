@@ -13,5 +13,5 @@ indra-crossdoc = { module = "net.kyori:indra-crossdoc", version.ref = "indra" }
 centralPublishing = { module = "dev.lukebemish:central-portal-publishing", version.ref = "centralPublishing" }
 errorprone-gradle = { module = "net.ltgt.gradle:gradle-errorprone-plugin", version.ref = "gradleErrorprone" }
 spotless = { module = "com.diffplug.spotless:spotless-plugin-gradle", version.ref = "spotless" }
-palantir-baseline = { module = "com.palantir.baseline:gradle-baseline-java", version = "6.39.0" }
+palantir-baseline = { module = "com.palantir.baseline:gradle-baseline-java", version = "6.41.0" }
 revapi = "org.revapi.revapi-gradle-plugin:org.revapi.revapi-gradle-plugin.gradle.plugin:1.8.0"
