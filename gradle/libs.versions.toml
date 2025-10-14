@@ -2,7 +2,7 @@
 centralPublishing = { id = "dev.lukebemish.central-portal-publishing", version.ref = "centralPublishing" }
 
 [versions]
-indra = "3.2.0"
+indra = "4.0.0"
 gradleErrorprone = "4.3.0"
 spotless = "7.2.1"
 centralPublishing = "0.1.7"
