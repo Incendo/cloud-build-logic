@@ -15,7 +15,7 @@ val ProviderFactory.ciBuild: Provider<Boolean>
         .map { it.toBoolean() }
         .orElse(false)
 
-inline fun <reified S> PolymorphicDomainObjectContainer<in S>.maybeConfigure(name: String, op: Action<S>) {
+inline fun <reified S : Any> PolymorphicDomainObjectContainer<in S>.maybeConfigure(name: String, op: Action<S>) {
     if (name in names) {
         named(name, S::class.java, op)
     }
