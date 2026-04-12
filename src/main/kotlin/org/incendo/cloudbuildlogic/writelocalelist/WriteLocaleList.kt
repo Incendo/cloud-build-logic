@@ -7,13 +7,18 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
 import javax.inject.Inject
 import kotlin.io.path.listDirectoryEntries
 
+@DisableCachingByDefault(because = "Scanning a small resource directory and regenerating a tiny locale list is cheaper than cache management overhead")
 @Suppress("LeakingThis")
 abstract class WriteLocaleList : DefaultTask() {
     @get:InputDirectory
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val dir: DirectoryProperty
 
     @get:Input
