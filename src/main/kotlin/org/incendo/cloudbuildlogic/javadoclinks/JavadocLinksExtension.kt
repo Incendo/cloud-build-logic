@@ -153,6 +153,10 @@ abstract class JavadocLinksExtension @Inject constructor(providers: ProviderFact
                 if (name.contains("examination")) {
                     return PassThrough().link(defaultProvider, id)
                 }
+                val major = id.version.substringBefore(".").toInt()
+                if (major >= 5) {
+                    return "https://jd.papermc.io/adventure/${id.version}/"
+                }
                 return "https://jd.advntr.dev/$name/${id.version}"
             }
         }
