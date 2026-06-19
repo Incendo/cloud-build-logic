@@ -5,7 +5,7 @@ centralPublishing = { id = "dev.lukebemish.central-portal-publishing", version.r
 indra = "4.0.0"
 gradleErrorprone = "5.1.0"
 spotless = "8.7.0"
-centralPublishing = "0.1.8"
+centralPublishing = "0.1.9"
 
 [libraries]
 indra-common = { module = "net.kyori:indra-common", version.ref = "indra" }
