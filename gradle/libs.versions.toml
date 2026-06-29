@@ -4,7 +4,7 @@ centralPublishing = { id = "dev.lukebemish.central-portal-publishing", version.r
 [versions]
 indra = "4.0.0"
 gradleErrorprone = "5.1.0"
-spotless = "8.7.0"
+spotless = "8.8.0"
 centralPublishing = "0.1.9"
 
 [libraries]
